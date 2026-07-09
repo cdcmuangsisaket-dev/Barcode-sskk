@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบพิมพ์สติ๊กเกอร์บาร์โค้ด</title>
+    <!-- เรียกใช้ Tailwind CSS สำหรับตกแต่งหน้าจอ -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- เรียกใช้ JsBarcode สำหรับสร้างบาร์โค้ด -->
+    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+    <!-- เรียกใช้ SheetJS สำหรับอ่านไฟล์ Excel -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <style>
+        /* สไตล์สำหรับหน้าจอปกติ */
+        body {
+            background-color: #f3f4f6;
+            font-family: 'Sarabun', sans-serif;
+        }
+
+        .preview-sticker {
+            background: white;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start; /* เริ่มจากด้านบน */
+            align-items: center;
+            padding: 1.5mm; 
+            overflow: hidden;
+            margin: 0 auto;
+        }
+
+        /* ซ่อนพื้นที่สำหรับปริ้นท์ตอนใช้งานบนหน้าจอปกติ */
+        #print-area {
+            display: none;
+        }
+
+        /* สไตล์พิเศษที่จะทำงานเฉพาะตอนกด "พิมพ์" (Ctrl+P หรือ window.print()) */
+        @media print {
+            /* ซ่อน UI หน้าเว็บทั้งหมดแบบถาวรในตอนพิมพ์ ไม่ให้กินพื้นที่กระดาษ */
+            #ui-area {
+                display: none !important;
+            }
+            
+            body {
+                padding: 0 !important;
+                margin: 0 !important;
+                background-color: white !important;
+            }
+            
+            #print-area {
+                display: block !important;
+            }
+
+            @page {
+                margin: 0; 
+            }
+
+            .print-sticker {
+                page-break-after: always; 
+                display: flex;
+                flex-direction: column;
+                justify-content: flex-start; /* จัดเรียงจากบนลงล่าง */
+                align-items: center;
+                box-sizing: border-box;
+                padding: 1.5mm; /* ระยะขอบกระดาษ */
+                overflow: hidden;
+                background-color: white;
+            }
+
+            .print-sticker svg { 
+                width: 100%; 
+                height: auto;
+                max-height: 33%;
+                margin-top: 0;
+                margin-bottom: 0; 
+                display: block;
+            }
+            
+            /* แก้สระขาดหาย: ใช้ Padding ช่วยขยายกรอบเพื่อไม่ให้ overflow ตัดสระทิ้ง */
+            .print-sticker .product-name { 
+                font-weight: 900; 
+                margin-top: 0; 
+                margin-bottom: 0; 
+                padding-top: 1.5mm; /* เพิ่มเบาะรองด้านบนให้สระ อี ี ิ ื ั ์ */
+                padding-bottom: 1mm; /* เพิ่มเบาะรองด้านล่างให้สระ อุ อู */
+                text-align: center; 
+                white-space: nowrap; 
+                line-height: 1.2; /* ปรับ line-height ให้ฟอนต์ไทยหายใจได้ */
+                width: 100%;
+                overflow: hidden;
+                text-overflow: ellipsis; 
+            }
+            
+            /* ลำดับที่ */
+            .print-sticker .product-seq { 
+                font-size: 9pt; 
+                font-weight: bold;
+                margin-top: 0;
+                margin-bottom: 0;
+                padding-top: 0.5mm;
+                padding-bottom: 0.5mm;
+                line-height: 1.2; 
+            }
+            
+            /* วันที่ล่างสุด */
+            .print-sticker .product-date { 
+                font-size: 7.5pt; 
+                margin-top: 0;
+                margin-bottom: 0; 
+                line-height: 1.2; 
+            }
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;900&display=swap" rel="stylesheet">
+    <style id="dynamic-print-style"></style>
+</head>
+<body class="p-4 md:p-8">
+
+    <!-- เพิ่ม ID ui-area ให้กรอบนี้ เพื่อสั่งซ่อนตอนพิมพ์ -->
+    <div id="ui-area" class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+        
+        <!-- ฝั่งซ้าย: ฟอร์มกรอกข้อมูล -->
+        <div class="bg-white p-6 rounded-xl shadow-md">
+            <h2 class="text-2xl font-bold mb-4 text-gray-800 border-b pb-2">ตั้งค่าสติ๊กเกอร์บาร์โค้ด</h2>
+            
+            <div class="space-y-4">
+
+                <!-- ส่วนกำหนดขนาดกระดาษ -->
+                <div class="grid grid-cols-2 gap-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
+                    <div class="col-span-2">
+                        <label class="block text-sm font-bold text-blue-800">ตั้งค่าขนาดกระดาษ (มิลลิเมตร)</label>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">ความกว้าง (Width)</label>
+                        <input type="number" id="input-width" value="50" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">ความสูง (Height)</label>
+                        <input type="number" id="input-height" value="30" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                    </div>
+                </div>
+                
+                <!-- ส่วนเลือกประเภทบาร์โค้ด -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">เลือกประเภทบาร์โค้ด</label>
+                    <div class="flex gap-4 p-2 border border-gray-300 rounded-lg bg-gray-50">
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="barcodeType" value="hn" class="form-radio text-blue-600 w-4 h-4" checked onchange="handleBarcodeTypeChange()">
+                            <span class="ml-2 text-sm text-gray-800 font-medium">HN (รหัสผู้ป่วย)</span>
+                        </label>
+                        <label class="inline-flex items-center cursor-pointer">
+                            <input type="radio" name="barcodeType" value="idcard" class="form-radio text-blue-600 w-4 h-4" onchange="handleBarcodeTypeChange()">
+                            <span class="ml-2 text-sm text-gray-800 font-medium">เลขบัตรประชาชน</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ระบุวันที่พิมพ์ (แสดงบรรทัดล่างสุด)</label>
+                    <input type="date" id="input-date" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none bg-yellow-50 cursor-pointer" oninput="updatePreview()" onchange="updatePreview()">
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label id="label-barcode-input" class="block text-sm font-medium text-gray-700 mb-1">รหัสบาร์โค้ด (HN)</label>
+                        <input type="text" id="input-barcode" value="001096048" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">ลำดับที่</label>
+                        <input type="text" id="input-seq" value="1" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
+                    </div>
+                </div>
+                
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล</label>
+                    <input type="text" id="input-name" value="ศรชัย ลุนศรี" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">จำนวนดวงที่จะพิมพ์</label>
+                    <input type="number" id="input-qty" value="1" min="1" max="100" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                </div>
+
+                <div class="pt-4">
+                    <button onclick="printStickers()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-4 rounded-lg flex justify-center items-center gap-2 transition duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                        สั่งพิมพ์สติ๊กเกอร์ (พิมพ์เดี่ยว)
+                    </button>
+                    <p id="display-print-hint" class="text-xs text-gray-500 text-center mt-2">* กรุณาตั้งค่าหน้ากระดาษ (Paper size) ในเครื่องปริ้นเป็น 50x30mm และตั้ง Margin เป็น None</p>
+                </div>
+            </div>
+
+            <!-- ส่วนเพิ่ม: นำเข้าจาก Excel -->
+            <div class="mt-8 pt-6 border-t border-gray-200">
+                <h3 class="text-lg font-bold mb-3 text-gray-800 flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                    พิมพ์จากไฟล์ Excel
+                </h3>
+                <div class="space-y-3">
+                    <p class="text-sm text-gray-600">ระบบรองรับไฟล์ที่มีคอลัมน์: <br>
+                    <span class="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded">ลำดับที่</span>, <span class="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded">ชื่อ-นามสกุล</span>, <span class="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded">HN</span>, <span class="font-mono text-xs bg-gray-100 px-1 py-0.5 rounded">เลขบัตรประชาชน</span></p>
+                    
+                    <input type="file" id="excel-file" accept=".xlsx, .xls, .csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-green-50 file:text-green-700 hover:file:bg-green-100 cursor-pointer">
+                    
+                    <button id="btn-print-excel" onclick="printExcelStickers()" class="w-full bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-4 rounded-lg hidden justify-center items-center gap-2 transition duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
+                        สั่งพิมพ์รายการจาก Excel (ทั้งหมด)
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ฝั่งขวา: ตัวอย่างสติ๊กเกอร์ (Preview) -->
+        <div class="bg-gray-100 p-6 rounded-xl shadow-inner border border-gray-200 flex flex-col justify-center items-center">
+            <h3 class="text-lg font-semibold text-gray-700 mb-4">ตัวอย่างฉลาก (Preview)</h3>
+            
+            <!-- กรอบจำลองสติ๊กเกอร์ (แก้ Tailwind class จาก leading-none เป็น leading-snug และใส่ padding (pt, pb)) -->
+            <div class="preview-sticker relative">
+                <svg id="preview-barcode-img" style="width: 100%; height: auto; max-height: 33%; margin-bottom: 2px;"></svg>
+                <div id="preview-name" class="font-black truncate w-full text-center text-gray-900 leading-snug pt-1.5 pb-0.5">ศรชัย ลุนศรี</div>
+                <div id="preview-seq" class="text-[12px] font-bold text-gray-800 leading-snug pt-0.5 pb-0.5">ลำดับ 1</div>
+                <div id="preview-date" class="text-[10px] text-gray-700 leading-snug pt-0.5">07/07/2026</div>
+            </div>
+
+            <div id="display-size" class="mt-6 text-sm text-gray-500 bg-white px-4 py-2 rounded shadow-sm border border-gray-200">
+                ขนาดจำลอง: กว้าง 50mm x สูง 30mm
+            </div>
+
+            <!-- ส่วนแสดงตัวอย่างข้อมูลจาก Excel -->
+            <div id="excel-preview-container" class="w-full mt-6 hidden">
+                <h3 class="text-sm font-semibold text-gray-700 mb-2">ข้อมูลที่ดึงได้จาก Excel:</h3>
+                <div class="bg-white border border-gray-200 rounded overflow-hidden max-h-72 overflow-y-auto"> <!-- ขยายความสูงให้ดูง่ายขึ้น -->
+                    <table class="w-full text-xs text-left text-gray-500">
+                        <thead class="text-xs text-gray-700 uppercase bg-gray-200 sticky top-0 shadow-sm z-10">
+                            <tr>
+                                <th class="px-2 py-2 text-center w-12">ลำดับ</th>
+                                <th id="th-barcode" class="px-2 py-2">HN (บาร์โค้ด)</th>
+                                <th class="px-2 py-2">ชื่อ-นามสกุล</th>
+                                <th class="px-2 py-2 text-center w-32">จัดการ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="excel-table-body">
+                            <!-- ข้อมูลตารางจาก Excel จะมาตรงนี้ -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- พื้นที่ซ่อนสำหรับพิมพ์ -->
+    <div id="print-area"></div>
+
+    <script>
+        // ตั้งค่าเริ่มต้นของวันที่เป็นวันปัจจุบัน (รูปแบบปฏิทินใช้ YYYY-MM-DD)
+        function setDefaultDate() {
+            const today = new Date();
+            const yyyy = today.getFullYear();
+            let mm = today.getMonth() + 1;
+            let dd = today.getDate();
+            if (dd < 10) dd = '0' + dd;
+            if (mm < 10) mm = '0' + mm;
+            document.getElementById('input-date').value = `${yyyy}-${mm}-${dd}`;
+        }
+
+        // แปลงวันที่จากช่องปฏิทิน (YYYY-MM-DD) เป็นรูปแบบที่จะพิมพ์ (DD/MM/YYYY)
+        function getDisplayDate() {
+            const dateVal = document.getElementById('input-date').value;
+            if (!dateVal) return "";
+            const parts = dateVal.split('-');
+            if (parts.length === 3) {
+                return `${parts[2]}/${parts[1]}/${parts[0]}`;
+            }
+            return dateVal; 
+        }
+
+        // จัดการปรับขนาดสติ๊กเกอร์
+        function updatePreviewSize() {
+            let w = parseFloat(document.getElementById('input-width').value) || 50;
+            let h = parseFloat(document.getElementById('input-height').value) || 30;
+            
+            // ป้องกันไม่ให้ใส่ค่าต่ำเกินไป
+            if (w < 10) w = 10;
+            if (h < 10) h = 10;
+
+            const preview = document.querySelector('.preview-sticker');
+            if (preview) {
+                preview.style.width = `${w}mm`;
+                preview.style.height = `${h}mm`;
+            }
+
+            const displaySize = document.getElementById('display-size');
+            if (displaySize) displaySize.innerText = `ขนาดจำลอง: กว้าง ${w}mm x สูง ${h}mm`;
+
+            const printHint = document.getElementById('display-print-hint');
+            if (printHint) printHint.innerText = `* กรุณาตั้งค่าหน้ากระดาษ (Paper size) ในเครื่องปริ้นเป็น ${w}x${h}mm และตั้ง Margin เป็น None`;
+
+            // สร้างหรืออัปเดตแท็ก style สำหรับหน้ากระดาษพิมพ์จริง
+            let styleEl = document.getElementById('dynamic-print-style');
+            styleEl.innerHTML = `
+                @media print {
+                    @page { size: ${w}mm ${h}mm !important; margin: 0; }
+                    .print-sticker { width: ${w}mm !important; height: ${h}mm !important; }
+                }
+            `;
+
+            // ปรับความสูงบาร์โค้ดคร่าวๆ ตามความสูงกระดาษ
+            window.currentBarcodeHeight = Math.max(10, h - 15);
+            updatePreview();
+        }
+
+        // จัดการเมื่อเปลี่ยนประเภทบาร์โค้ด (HN / บัตรประชาชน)
+        function handleBarcodeTypeChange() {
+            const type = document.querySelector('input[name="barcodeType"]:checked').value;
+            const labelInput = document.getElementById('label-barcode-input');
+            const thBarcode = document.getElementById('th-barcode');
+
+            if (type === 'idcard') {
+                labelInput.innerText = 'รหัสบาร์โค้ด (เลขบัตรประชาชน)';
+                thBarcode.innerText = 'เลขบัตรประชาชน';
+                // ถ้าค่าเดิมเป็น HN ตัวอย่าง ให้เปลี่ยนเป็นเลขบัตรตัวอย่าง
+                if (document.getElementById('input-barcode').value === '001096048') {
+                    document.getElementById('input-barcode').value = '1330300181448';
+                }
+            } else {
+                labelInput.innerText = 'รหัสบาร์โค้ด (HN)';
+                thBarcode.innerText = 'HN (บาร์โค้ด)';
+                // ถ้าค่าเดิมเป็นเลขบัตรตัวอย่าง ให้เปลี่ยนกลับเป็น HN
+                if (document.getElementById('input-barcode').value === '1330300181448') {
+                    document.getElementById('input-barcode').value = '001096048';
+                }
+            }
+            
+            // อัปเดตตารางและ Preview ใหม่
+            if (excelData.length > 0) {
+                renderExcelPreview(excelData);
+            }
+            updatePreview();
+        }
+
+        // ฟังก์ชันดึงข้อมูลบาร์โค้ดที่ถูกต้องตามประเภทที่ผู้ใช้เลือก
+        function getBarcodeFromRow(row) {
+            const type = document.querySelector('input[name="barcodeType"]:checked').value;
+            let raw = "";
+            
+            if (type === 'idcard') {
+                // ค้นหาคอลัมน์ที่เป็นเลขบัตรประชาชน
+                raw = (row['เลขบัตรประชาชน'] || row['เลขบัตร'] || row['idcard'] || row['id'] || '').toString();
+            } else {
+                // ค้นหาคอลัมน์ที่เป็น HN หรือบาร์โค้ดทั่วไป
+                raw = (row['บาร์โค้ด'] || row['hn'] || row['barcode'] || row['รหัสสินค้า'] || row['รหัส'] || '').toString();
+            }
+            
+            return raw.replace(/\*/g, '').trim();
+        }
+
+        // ฟังก์ชันสร้างบาร์โค้ด
+        function generateBarcode(selector, value) {
+            try {
+                JsBarcode(selector, value, {
+                    format: "CODE128", 
+                    width: 1.8,        
+                    height: window.currentBarcodeHeight || 20,
+                    displayValue: true,
+                    fontSize: 12,      
+                    fontOptions: "bold",
+                    margin: 0,
+                    textMargin: 1      
+                });
+            } catch (e) {
+                console.error("Barcode generation error:", e);
+            }
+        }
+
+        // ฟังก์ชันช่วยคำนวณและปรับขนาดฟอนต์ของชื่ออัตโนมัติตามความยาว
+        function adjustNameFontSize(element, text, isPrintMode) {
+            const len = text.length;
+            if (isPrintMode) {
+                // สำหรับหน้ากระดาษจริง
+                if (len > 22) element.style.fontSize = '8pt';     
+                else if (len > 15) element.style.fontSize = '10pt'; 
+                else element.style.fontSize = '12.5pt';               
+            } else {
+                // สำหรับหน้าจอ Preview
+                if (len > 22) element.style.fontSize = '11px';
+                else if (len > 15) element.style.fontSize = '13px';
+                else element.style.fontSize = '16px';
+            }
+        }
+
+        // ฟังก์ชันอัปเดตหน้า Preview แบบ Real-time
+        function updatePreview() {
+            const barcode = document.getElementById('input-barcode').value || " ";
+            const name = document.getElementById('input-name').value || " ";
+            const seq = document.getElementById('input-seq').value || " ";
+            const dateStr = getDisplayDate();
+
+            const nameEl = document.getElementById('preview-name');
+            nameEl.innerText = name;
+            adjustNameFontSize(nameEl, name, false);
+
+            document.getElementById('preview-seq').innerText = seq ? `ลำดับ ${seq}` : '';
+            document.getElementById('preview-date').innerText = dateStr;
+            
+            generateBarcode("#preview-barcode-img", barcode);
+        }
+
+        // สั่งพิมพ์สำหรับหน้าจอเดี่ยว
+        function printStickers() {
+            const barcode = document.getElementById('input-barcode').value;
+            const name = document.getElementById('input-name').value;
+            const seq = document.getElementById('input-seq').value;
+            const dateStr = getDisplayDate();
+            const qty = parseInt(document.getElementById('input-qty').value) || 1;
+            
+            if (!barcode) {
+                alert("กรุณากรอกรหัสบาร์โค้ด");
+                return;
+            }
+
+            renderStickersToDOM([{ barcode, name, seq, date: dateStr, qty }]);
+            setTimeout(() => window.print(), 300);
+        }
+
+        window.onload = () => {
+            setDefaultDate();
+            updatePreviewSize(); // อัปเดตขนาดกระดาษ + บาร์โค้ด + พรีวิว ในตอนเริ่มต้น
+        };
+
+        // ==========================================
+        // ส่วนเสริม: ฟังก์ชันสำหรับอ่านไฟล์ Excel อัจฉริยะ
+        // ==========================================
+        let excelData = [];
+
+        document.getElementById('excel-file').addEventListener('change', function(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, {type: 'array'});
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                // แปลงไฟล์เป็น Array of Arrays เพื่อหาหัวคอลัมน์ที่แท้จริง
+                const rawData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                let headerRowIndex = 0;
+
+                // วนลูปหาว่าบรรทัดไหนมีคำว่า "ชื่อ-นามสกุล", "บาร์โค้ด", "HN" , "ลำดับ" หรือ "เลขบัตรประชาชน"
+                for (let i = 0; i < rawData.length; i++) {
+                    const rowStr = (rawData[i] || []).join('').toLowerCase();
+                    if (rowStr.includes('ชื่อ-นามสกุล') || rowStr.includes('hn') || rowStr.includes('บาร์โค้ด') || rowStr.includes('ลำดับ') || rowStr.includes('เลขบัตรประชาชน')) {
+                        headerRowIndex = i;
+                        break;
+                    }
+                }
+                
+                // อ่านข้อมูลใหม่โดยเริ่มจากบรรทัดหัวคอลัมน์ที่ค้นพบ
+                const json = XLSX.utils.sheet_to_json(worksheet, { range: headerRowIndex, defval: "" });
+                
+                excelData = json.map(row => {
+                    const normalizedRow = {};
+                    for (let key in row) {
+                        normalizedRow[key.toLowerCase().trim()] = row[key];
+                    }
+                    return normalizedRow;
+                });
+
+                if (excelData.length > 0) {
+                    renderExcelPreview(excelData);
+                    document.getElementById('btn-print-excel').style.display = 'flex';
+                    document.getElementById('excel-preview-container').style.display = 'block';
+                } else {
+                    alert("ไม่พบข้อมูลในไฟล์ Excel");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // นำข้อมูลมาวาดแสดงผลบนตาราง
+        function renderExcelPreview(data) {
+            const tbody = document.getElementById('excel-table-body');
+            tbody.innerHTML = '';
+            
+            // วนลูปแสดงข้อมูลทั้งหมด
+            data.forEach((row, index) => {
+                const tr = document.createElement('tr');
+                tr.className = 'border-b hover:bg-gray-50 transition-colors';
+                
+                let seq = row['ลำดับที่'] || row['ลำดับ'] || row['seq'] || row['no'] || '';
+                
+                // ใช้ฟังก์ชันตัวช่วยในการดึงบาร์โค้ดให้ตรงกับที่เลือก (HN หรือ IDCard)
+                let barcode = getBarcodeFromRow(row);
+                let name = row['ชื่อ-นามสกุล'] || row['name'] || row['ชื่อสินค้า'] || row['ชื่อ'] || '';
+
+                if(barcode || name) {
+                    tr.innerHTML = `
+                        <td class="px-2 py-2 text-center font-semibold text-gray-600">${seq}</td>
+                        <td class="px-2 py-2 font-mono text-gray-900 text-[11px]">${barcode}</td>
+                        <td class="px-2 py-2 truncate max-w-[120px] font-medium text-gray-800">${name}</td>
+                        <td class="px-2 py-2 text-center">
+                            <div class="flex justify-center gap-2">
+                                <button onclick="fillManualForm(${index})" class="text-blue-600 hover:text-blue-800 hover:underline text-[11px] font-medium transition" title="ดึงข้อมูลลงฟอร์ม">ดึงข้อมูล</button>
+                                <button onclick="printSingleFromExcel(${index})" class="bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded text-[11px] font-bold shadow-sm transition" title="ปริ้นสติ๊กเกอร์คนนี้">พิมพ์</button>
+                            </div>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                }
+            });
+        }
+
+        // ดึงข้อมูลจากแถวที่เลือกไปใส่ในฟอร์มด้านซ้าย
+        function fillManualForm(index) {
+            const row = excelData[index];
+            if (!row) return;
+
+            let seq = row['ลำดับที่'] || row['ลำดับ'] || row['seq'] || row['no'] || '';
+            let barcode = getBarcodeFromRow(row); 
+            let name = row['ชื่อ-นามสกุล'] || row['name'] || row['ชื่อสินค้า'] || row['ชื่อ'] || '';
+            let qty = parseInt(row['qty'] || row['quantity'] || row['จำนวน']) || 1;
+
+            document.getElementById('input-barcode').value = barcode;
+            document.getElementById('input-name').value = name;
+            document.getElementById('input-seq').value = seq;
+            document.getElementById('input-qty').value = qty;
+            
+            // อัปเดตพรีวิวและเลื่อนหน้าจอไปด้านบน
+            updatePreview();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // สั่งพิมพ์รายบุคคลจากตาราง Excel
+        function printSingleFromExcel(index) {
+            const row = excelData[index];
+            if (!row) return;
+
+            let seq = row['ลำดับที่'] || row['ลำดับ'] || row['seq'] || row['no'] || '';
+            let barcode = getBarcodeFromRow(row);
+            let name = row['ชื่อ-นามสกุล'] || row['name'] || row['ชื่อสินค้า'] || row['ชื่อ'] || '';
+            let qty = parseInt(row['qty'] || row['quantity'] || row['จำนวน']) || 1;
+            const dateStr = getDisplayDate();
+
+            if (!barcode) {
+                alert("รายการนี้ไม่มีข้อมูลรหัสบาร์โค้ด");
+                return;
+            }
+
+            // ส่งข้อมูลไปสร้างเป็นสติ๊กเกอร์ 1 ดวงและปริ้น
+            renderStickersToDOM([{ barcode, name, seq, date: dateStr, qty }]);
+            setTimeout(() => window.print(), 300);
+        }
+
+        // ฟังก์ชันวาดสติ๊กเกอร์ทั้งหมดลงใน Print Area
+        function renderStickersToDOM(items) {
+            const printArea = document.getElementById('print-area');
+            printArea.innerHTML = ''; 
+
+            let stickerIndex = 0; 
+            
+            items.forEach(item => {
+                for (let i = 0; i < item.qty; i++) {
+                    const stickerDiv = document.createElement('div');
+                    stickerDiv.className = 'print-sticker';
+
+                    // 1. สร้างบาร์โค้ด (ส่วนบนสุด)
+                    const svgId = `sticker-barcode-${stickerIndex}`;
+                    const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                    svgEl.id = svgId;
+
+                    // 2. สร้างชื่อ (ส่วนกลาง) พร้อมปรับขนาดอัตโนมัติ
+                    const nameDiv = document.createElement('div');
+                    nameDiv.className = 'product-name';
+                    nameDiv.innerText = item.name;
+                    adjustNameFontSize(nameDiv, item.name, true); // ปรับขนาดฟอนต์
+
+                    // 3. สร้างลำดับ
+                    const seqDiv = document.createElement('div');
+                    seqDiv.className = 'product-seq';
+                    seqDiv.innerText = item.seq ? `ลำดับ ${item.seq}` : '';
+
+                    // 4. สร้างวันที่ (ส่วนล่างสุด)
+                    const dateDiv = document.createElement('div');
+                    dateDiv.className = 'product-date';
+                    dateDiv.innerText = item.date || '';
+
+                    // นำมาเรียงลำดับใหม่: Barcode -> Name -> Seq -> Date
+                    stickerDiv.appendChild(svgEl);
+                    stickerDiv.appendChild(nameDiv);
+                    if (item.seq) stickerDiv.appendChild(seqDiv);
+                    if (item.date) stickerDiv.appendChild(dateDiv);
+                    
+                    printArea.appendChild(stickerDiv);
+                    generateBarcode(`#${svgId}`, item.barcode);
+                    
+                    stickerIndex++;
+                }
+            });
+        }
+
+        // สั่งพิมพ์รายการทั้งหมดจาก Excel
+        function printExcelStickers() {
+            if (excelData.length === 0) return;
+
+            const itemsToPrint = [];
+            const dateStr = getDisplayDate(); // อิงจากวันที่ที่เลือก
+
+            excelData.forEach(row => {
+                let seq = row['ลำดับที่'] || row['ลำดับ'] || row['seq'] || row['no'] || '';
+                let barcode = getBarcodeFromRow(row); 
+                let name = row['ชื่อ-นามสกุล'] || row['name'] || row['ชื่อสินค้า'] || row['ชื่อ'] || '';
+                let qty = parseInt(row['qty'] || row['quantity'] || row['จำนวน']) || 1;
+
+                if (barcode) {
+                    itemsToPrint.push({ barcode, name, seq, date: dateStr, qty });
+                }
+            });
+
+            renderStickersToDOM(itemsToPrint);
+
+            setTimeout(() => {
+                window.print();
+            }, 800); 
+        }
+    </script>
+</body>
+</html>
