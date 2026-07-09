@@ -24,7 +24,7 @@
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
             display: flex;
             flex-direction: column;
-            justify-content: center; /* เปลี่ยนเป็น Center เพื่อให้อยู่ตรงกลางเวลาของน้อยลง */
+            justify-content: center;
             align-items: center;
             overflow: hidden;
             margin: 0 auto;
@@ -49,18 +49,13 @@
             }
             
             #print-area {
-                display: block !important;
-            }
-
-            @page {
-                margin: 0; 
+                display: block !important; /* ค่าเริ่มต้น จะถูกเขียนทับด้วย Grid ถ้าระบุเป็น A4 */
             }
 
             .print-sticker {
-                page-break-after: always; 
                 display: flex;
                 flex-direction: column;
-                justify-content: center; /* เปลี่ยนเป็น Center ให้อยู่กึ่งกลางเสมอ */
+                justify-content: center;
                 align-items: center;
                 box-sizing: border-box;
                 overflow: hidden;
@@ -98,7 +93,7 @@
         }
     </style>
     <link href="https://fonts.googleapis.com/css2?family=Sarabun:wght@400;600;900&display=swap" rel="stylesheet">
-    <!-- แท็กสไตล์สำหรับปรับขนาดแบบ Dynamic (Auto-Scale) -->
+    <!-- แท็กสไตล์สำหรับปรับขนาดแบบ Dynamic (Auto-Scale & A4 Grid) -->
     <style id="dynamic-print-style"></style>
 </head>
 <body class="p-4 md:p-6 min-h-screen flex flex-col">
@@ -112,18 +107,60 @@
             
             <div class="space-y-4">
 
-                <!-- ส่วนกำหนดขนาดกระดาษ -->
+                <!-- ส่วนกำหนดขนาดและรูปแบบกระดาษ -->
                 <div class="grid grid-cols-2 gap-4 bg-blue-50 p-3 rounded-lg border border-blue-100">
                     <div class="col-span-2">
-                        <label class="block text-sm font-bold text-blue-800">ตั้งค่าขนาดกระดาษ (มิลลิเมตร)</label>
+                        <label class="block text-sm font-bold text-blue-800 mb-2">รูปแบบกระดาษที่จะพิมพ์</label>
+                        <div class="flex gap-4 p-2 bg-white rounded border border-gray-200">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="radio" name="paperType" value="roll" class="form-radio text-blue-600 w-4 h-4" checked onchange="handlePaperTypeChange()">
+                                <span class="ml-2 text-sm text-gray-800 font-medium">สติ๊กเกอร์ม้วน (Thermal)</span>
+                            </label>
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="radio" name="paperType" value="a4" class="form-radio text-blue-600 w-4 h-4" onchange="handlePaperTypeChange()">
+                                <span class="ml-2 text-sm text-gray-800 font-medium">สติ๊กเกอร์แผ่น A4</span>
+                            </label>
+                        </div>
                     </div>
+
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">ความกว้าง (Width)</label>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">ความกว้างดวง (Width mm)</label>
                         <input type="number" id="input-width" value="50" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
                     </div>
                     <div>
-                        <label class="block text-xs font-medium text-gray-700 mb-1">ความสูง (Height)</label>
+                        <label class="block text-xs font-medium text-gray-700 mb-1">ความสูงดวง (Height mm)</label>
                         <input type="number" id="input-height" value="30" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                    </div>
+
+                    <!-- ส่วนตั้งค่า A4 (ซ่อนเมื่อเป็นแบบม้วน) -->
+                    <div id="a4-settings" class="col-span-2 grid grid-cols-2 gap-3 mt-1 hidden border-t border-blue-100 pt-3">
+                        <div class="col-span-2"><p class="text-xs text-blue-700 font-semibold">ตั้งค่าสำหรับกระดาษ A4:</p></div>
+                        <div class="col-span-2 flex gap-4 mb-1">
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="radio" name="orientation" value="portrait" class="form-radio text-blue-600 w-4 h-4" checked onchange="updatePreviewSize()">
+                                <span class="ml-2 text-xs text-gray-800 font-medium">แนวตั้ง (Portrait)</span>
+                            </label>
+                            <label class="inline-flex items-center cursor-pointer">
+                                <input type="radio" name="orientation" value="landscape" class="form-radio text-blue-600 w-4 h-4" onchange="updatePreviewSize()">
+                                <span class="ml-2 text-xs text-gray-800 font-medium">แนวนอน (Landscape)</span>
+                            </label>
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">จำนวนดวงต่อแถว (คอลัมน์)</label>
+                            <input type="number" id="input-cols" value="3" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">ระยะห่างแนวนอน/ตั้ง (Gap mm)</label>
+                            <input type="number" id="input-gap" value="2" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">ขอบซ้ายกระดาษ (Left mm)</label>
+                            <input type="number" id="input-margin-left" value="10" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">ขอบบนกระดาษ (Top mm)</label>
+                            <input type="number" id="input-margin-top" value="10" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                        </div>
                     </div>
                 </div>
                 
@@ -145,7 +182,6 @@
 
                     <div>
                         <label class="block text-sm font-bold text-gray-800 mb-1">2. เลือกองค์ประกอบที่จะพิมพ์</label>
-                        <!-- เมื่อคลิกเลือก/ไม่เลือก ให้เรียน updatePreviewSize เพื่อคำนวณการขยายใหม่ -->
                         <div class="grid grid-cols-2 gap-2 p-2 bg-white rounded border border-gray-200">
                             <label class="inline-flex items-center cursor-pointer">
                                 <input type="checkbox" id="show-barcode" class="form-checkbox text-blue-600 w-4 h-4" checked onchange="updatePreviewSize()">
@@ -198,7 +234,7 @@
                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
                         สั่งพิมพ์สติ๊กเกอร์ (พิมพ์เดี่ยว)
                     </button>
-                    <p id="display-print-hint" class="text-xs text-gray-500 text-center mt-2">* กรุณาตั้งค่าหน้ากระดาษ (Paper size) ในเครื่องปริ้นเป็น 50x30mm และตั้ง Margin เป็น None</p>
+                    <p id="display-print-hint" class="text-xs text-gray-500 text-center mt-2">* กรุณาตั้งค่าหน้ากระดาษ (Paper size) ให้ถูกต้องตอนกดพิมพ์</p>
                 </div>
             </div>
 
@@ -246,7 +282,6 @@
                         <thead class="text-xs text-gray-700 uppercase bg-gray-200 sticky top-0 shadow-sm z-10">
                             <tr>
                                 <th class="px-4 py-3 text-center w-12">
-                                    <!-- ปุ่ม Checkbox สำหรับเลือกทั้งหมด -->
                                     <input type="checkbox" id="selectAll" class="w-4 h-4 text-blue-600 rounded cursor-pointer" checked onchange="toggleSelectAll(this)">
                                 </th>
                                 <th class="px-4 py-3 text-center w-16">ลำดับ</th>
@@ -269,6 +304,84 @@
     <div id="print-area"></div>
 
     <script>
+        // โหลดการตั้งค่าจาก LocalStorage
+        function loadSettings() {
+            const saved = localStorage.getItem('barcodePrinterSettings');
+            if (saved) {
+                try {
+                    const settings = JSON.parse(saved);
+                    
+                    if (settings.width) document.getElementById('input-width').value = settings.width;
+                    if (settings.height) document.getElementById('input-height').value = settings.height;
+                    
+                    if (settings.paperType) {
+                        const ptRadio = document.querySelector(`input[name="paperType"][value="${settings.paperType}"]`);
+                        if(ptRadio) ptRadio.checked = true;
+                        
+                        const a4Settings = document.getElementById('a4-settings');
+                        if (settings.paperType === 'a4') {
+                            a4Settings.classList.remove('hidden');
+                        } else {
+                            a4Settings.classList.add('hidden');
+                        }
+                    }
+
+                    if (settings.cols) document.getElementById('input-cols').value = settings.cols;
+                    if (settings.gap) document.getElementById('input-gap').value = settings.gap;
+                    if (settings.marginLeft) document.getElementById('input-margin-left').value = settings.marginLeft;
+                    if (settings.marginTop) document.getElementById('input-margin-top').value = settings.marginTop;
+
+                    if (settings.orientation) {
+                        const oriRadio = document.querySelector(`input[name="orientation"][value="${settings.orientation}"]`);
+                        if(oriRadio) oriRadio.checked = true;
+                    }
+
+                    if (settings.barcodeType) {
+                        const btRadio = document.querySelector(`input[name="barcodeType"][value="${settings.barcodeType}"]`);
+                        if(btRadio) btRadio.checked = true;
+                        
+                        const labelInput = document.getElementById('label-barcode-input');
+                        const thBarcode = document.getElementById('th-barcode');
+                        if (settings.barcodeType === 'idcard') {
+                            labelInput.innerText = 'รหัสบาร์โค้ด (เลขบัตรประชาชน)';
+                            if(thBarcode) thBarcode.innerText = 'เลขบัตรประชาชน';
+                        } else {
+                            labelInput.innerText = 'รหัสบาร์โค้ด (HN)';
+                            if(thBarcode) thBarcode.innerText = 'HN (บาร์โค้ด)';
+                        }
+                    }
+
+                    if (settings.showBarcode !== undefined) document.getElementById('show-barcode').checked = settings.showBarcode;
+                    if (settings.showName !== undefined) document.getElementById('show-name').checked = settings.showName;
+                    if (settings.showSeq !== undefined) document.getElementById('show-seq').checked = settings.showSeq;
+                    if (settings.showDate !== undefined) document.getElementById('show-date').checked = settings.showDate;
+
+                } catch (e) {
+                    console.error("Error loading settings:", e);
+                }
+            }
+        }
+
+        // บันทึกการตั้งค่าลง LocalStorage
+        function saveSettings() {
+            const settings = {
+                width: document.getElementById('input-width').value,
+                height: document.getElementById('input-height').value,
+                paperType: document.querySelector('input[name="paperType"]:checked').value,
+                cols: document.getElementById('input-cols').value,
+                gap: document.getElementById('input-gap').value,
+                marginLeft: document.getElementById('input-margin-left').value,
+                marginTop: document.getElementById('input-margin-top').value,
+                orientation: document.querySelector('input[name="orientation"]:checked') ? document.querySelector('input[name="orientation"]:checked').value : 'portrait',
+                barcodeType: document.querySelector('input[name="barcodeType"]:checked').value,
+                showBarcode: document.getElementById('show-barcode').checked,
+                showName: document.getElementById('show-name').checked,
+                showSeq: document.getElementById('show-seq').checked,
+                showDate: document.getElementById('show-date').checked
+            };
+            localStorage.setItem('barcodePrinterSettings', JSON.stringify(settings));
+        }
+
         // ตั้งค่าเริ่มต้นของวันที่เป็นวันปัจจุบัน (รูปแบบปฏิทินใช้ YYYY-MM-DD)
         function setDefaultDate() {
             const today = new Date();
@@ -280,7 +393,6 @@
             document.getElementById('input-date').value = `${yyyy}-${mm}-${dd}`;
         }
 
-        // แปลงวันที่จากช่องปฏิทิน (YYYY-MM-DD) เป็นรูปแบบที่จะพิมพ์ (DD/MM/YYYY)
         function getDisplayDate() {
             const dateVal = document.getElementById('input-date').value;
             if (!dateVal) return "";
@@ -291,7 +403,19 @@
             return dateVal; 
         }
 
-        // จัดการปรับขนาดสติ๊กเกอร์แบบ Auto-Scale + Auto-Expand
+        // จัดการเปิด/ปิด A4 Settings
+        function handlePaperTypeChange() {
+            const type = document.querySelector('input[name="paperType"]:checked').value;
+            const a4Settings = document.getElementById('a4-settings');
+            if (type === 'a4') {
+                a4Settings.classList.remove('hidden');
+            } else {
+                a4Settings.classList.add('hidden');
+            }
+            updatePreviewSize();
+        }
+
+        // จัดการปรับขนาดสติ๊กเกอร์แบบ Auto-Scale + A4 Grid
         function updatePreviewSize() {
             let w = parseFloat(document.getElementById('input-width').value) || 50;
             let h = parseFloat(document.getElementById('input-height').value) || 30;
@@ -299,10 +423,8 @@
             if (w < 10) w = 10;
             if (h < 10) h = 10;
 
-            // คำนวณ Base Scale Factor จากขนาดมาตรฐาน 50x30
             let baseScale = Math.min(w / 50, h / 30);
 
-            // เช็คว่าเปิดใช้อะไรบ้าง เพื่อนำมาคำนวณการขยายสัดส่วน
             const showBarcode = document.getElementById('show-barcode').checked;
             const showName = document.getElementById('show-name').checked;
             const showSeq = document.getElementById('show-seq').checked;
@@ -313,39 +435,33 @@
             if (showName) activeCount++;
             if (showSeq) activeCount++;
             if (showDate) activeCount++;
+            if (activeCount === 0) activeCount = 1;
 
-            if (activeCount === 0) activeCount = 1; // ป้องกันการหาร 0 หรือ error
-
-            // ยิ่งเปิดใช้น้อย ตัวยิ่งขยายใหญ่ขึ้น (Zoom Factor)
             let zoomFactor = 1;
             if (activeCount === 3) zoomFactor = 1.25;
             if (activeCount === 2) zoomFactor = 1.6;
             if (activeCount === 1) zoomFactor = 2.2;
 
-            // ตัวแปรสเกลสุทธิ (รวมกระดาษ + การขยาย)
             let finalScale = baseScale * zoomFactor;
-            // บันทึกตัวแปร finalScale เก็บไว้ใน window เพื่อให้ฟังก์ชันอื่นดึงไปใช้ได้
             window.currentFinalScale = finalScale;
-            window.currentBarcodeHeight = 20 * finalScale; // ความสูงเส้นบาร์โค้ด
+            window.currentBarcodeHeight = 20 * finalScale; 
 
             const preview = document.querySelector('.preview-sticker');
             if (preview) {
                 preview.style.width = `${w}mm`;
                 preview.style.height = `${h}mm`;
-                preview.style.padding = `${1.5 * baseScale}mm`; // ขอบใช้ baseScale ปกติ
+                preview.style.padding = `${1.5 * baseScale}mm`; 
             }
 
             const displaySize = document.getElementById('display-size');
             if (displaySize) displaySize.innerText = `ขนาดจำลอง: กว้าง ${w}mm x สูง ${h}mm`;
 
             const printHint = document.getElementById('display-print-hint');
-            if (printHint) printHint.innerText = `* กรุณาตั้งค่าหน้ากระดาษ (Paper size) ในเครื่องปริ้นเป็น ${w}x${h}mm และตั้ง Margin เป็น None`;
-
-            // กำหนด CSS อัตโนมัติให้ยืดหยุ่นตามจำนวนองค์ประกอบ
-            let styleEl = document.getElementById('dynamic-print-style');
-            styleEl.innerHTML = `
+            const paperType = document.querySelector('input[name="paperType"]:checked').value;
+            
+            // สร้าง Dynamic CSS
+            let dynamicCSS = `
                 @media print {
-                    @page { size: ${w}mm ${h}mm !important; margin: 0; }
                     .print-sticker { 
                         width: ${w}mm !important; 
                         height: ${h}mm !important; 
@@ -353,7 +469,6 @@
                         justify-content: center !important; 
                     }
                     .print-sticker svg { 
-                        /* ถ้าเหลือแต่บาร์โค้ดให้กว้าง 90% ของความสูงกระดาษ */
                         max-height: ${activeCount === 1 ? '90%' : (33 * zoomFactor) + '%'} !important; 
                         margin-bottom: ${1 * finalScale}mm !important; 
                     }
@@ -369,9 +484,45 @@
                     .print-sticker .product-date { 
                         font-size: ${7.5 * finalScale}pt !important; 
                     }
-                }
-                
-                /* สไตล์สำหรับ Preview ให้ยืดหดตามสเกลแบบเดียวกับกระดาษปริ้น */
+            `;
+
+            if (paperType === 'roll') {
+                if (printHint) printHint.innerText = `* กรุณาตั้งหน้ากระดาษเครื่องปริ้นม้วนเป็น ${w}x${h}mm และตั้ง Margin เป็น None`;
+                dynamicCSS += `
+                    @page { size: ${w}mm ${h}mm !important; margin: 0; }
+                    #print-area { display: block !important; }
+                    .print-sticker { page-break-after: always; }
+                `;
+            } else {
+                let cols = parseInt(document.getElementById('input-cols').value) || 3;
+                let gap = parseFloat(document.getElementById('input-gap').value) || 2;
+                let marginLeft = parseFloat(document.getElementById('input-margin-left').value) || 0;
+                let marginTop = parseFloat(document.getElementById('input-margin-top').value) || 0;
+                let orientation = document.querySelector('input[name="orientation"]:checked') ? document.querySelector('input[name="orientation"]:checked').value : 'portrait';
+
+                if (printHint) printHint.innerText = `* กรุณาตั้งค่าหน้ากระดาษเป็น A4, ระบุ Scale เป็น 100% (Default) และ Margin เป็น None`;
+                dynamicCSS += `
+                    @page { size: A4 ${orientation} !important; margin: 0; }
+                    #print-area { 
+                        display: grid !important; 
+                        grid-template-columns: repeat(${cols}, ${w}mm); 
+                        gap: ${gap}mm;
+                        justify-content: start;
+                        align-content: start;
+                        padding-top: ${marginTop}mm !important;
+                        padding-left: ${marginLeft}mm !important;
+                    }
+                    .print-sticker { 
+                        page-break-inside: avoid; 
+                        page-break-after: auto;
+                    }
+                `;
+            }
+
+            dynamicCSS += `}`; // Close @media print
+
+            // Style สำหรับ Preview บนหน้าจอ
+            dynamicCSS += `
                 #preview-barcode-img { 
                     width: 100%; 
                     height: auto; 
@@ -392,7 +543,11 @@
                 }
             `;
 
+            document.getElementById('dynamic-print-style').innerHTML = dynamicCSS;
             updatePreview();
+            
+            // บันทึกการตั้งค่าเมื่อมีการเปลี่ยนแปลง UI Layout
+            saveSettings();
         }
 
         // จัดการเมื่อเปลี่ยนประเภทบาร์โค้ด (HN / บัตรประชาชน)
@@ -403,13 +558,13 @@
 
             if (type === 'idcard') {
                 labelInput.innerText = 'รหัสบาร์โค้ด (เลขบัตรประชาชน)';
-                thBarcode.innerText = 'เลขบัตรประชาชน';
+                if(thBarcode) thBarcode.innerText = 'เลขบัตรประชาชน';
                 if (document.getElementById('input-barcode').value === '001096048') {
                     document.getElementById('input-barcode').value = '1330300181448';
                 }
             } else {
                 labelInput.innerText = 'รหัสบาร์โค้ด (HN)';
-                thBarcode.innerText = 'HN (บาร์โค้ด)';
+                if(thBarcode) thBarcode.innerText = 'HN (บาร์โค้ด)';
                 if (document.getElementById('input-barcode').value === '1330300181448') {
                     document.getElementById('input-barcode').value = '001096048';
                 }
@@ -419,6 +574,9 @@
                 renderExcelPreview(excelData);
             }
             updatePreview();
+            
+            // บันทึกการตั้งค่าเมื่อมีการเปลี่ยนแปลงประเภทบาร์โค้ด
+            saveSettings();
         }
 
         function getBarcodeFromRow(row) {
@@ -434,7 +592,7 @@
             return raw.replace(/\*/g, '').trim();
         }
 
-        // ฟังก์ชันสร้างบาร์โค้ด (ใช้สเกลรวม)
+        // ฟังก์ชันสร้างบาร์โค้ด
         function generateBarcode(selector, value) {
             let scale = window.currentFinalScale || 1;
 
@@ -454,7 +612,7 @@
             }
         }
 
-        // ฟังก์ชันปรับขนาดฟอนต์ของชื่ออัตโนมัติตามความยาวและตัวคูณ
+        // ฟังก์ชันปรับขนาดฟอนต์ของชื่ออัตโนมัติตามความยาว
         function adjustNameFontSize(element, text, isPrintMode) {
             const len = text.length;
             let scale = window.currentFinalScale || 1;
@@ -470,7 +628,7 @@
             }
         }
 
-        // ฟังก์ชันอัปเดตหน้า Preview แบบ Real-time
+        // ฟังก์ชันอัปเดตหน้า Preview
         function updatePreview() {
             const barcode = document.getElementById('input-barcode').value || " ";
             const name = document.getElementById('input-name').value || " ";
@@ -493,7 +651,6 @@
             seqEl.innerText = seq ? `ลำดับ ${seq}` : '';
             dateEl.innerText = dateStr;
             
-            // เปิด/ปิด การแสดงผลตามที่ผู้ใช้ติ๊กเลือก
             barcodeEl.style.display = showBarcode ? 'block' : 'none';
             nameEl.style.display = showName ? 'block' : 'none';
             seqEl.style.display = (showSeq && seq) ? 'block' : 'none';
@@ -504,7 +661,7 @@
             }
         }
 
-        // สั่งพิมพ์สำหรับหน้าจอเดี่ยว
+        // สั่งพิมพ์เดี่ยว
         function printStickers() {
             const barcode = document.getElementById('input-barcode').value;
             const name = document.getElementById('input-name').value;
@@ -523,13 +680,15 @@
             setTimeout(() => window.print(), 300);
         }
 
+        // เริ่มต้นการทำงานเมื่อโหลดหน้าเว็บ
         window.onload = () => {
             setDefaultDate();
-            updatePreviewSize(); 
+            loadSettings(); // โหลดการตั้งค่าเก่าขึ้นมาก่อน
+            updatePreviewSize(); // คำนวณและปรับขนาด UI
         };
 
         // ==========================================
-        // ส่วนเสริม: ฟังก์ชันสำหรับอ่านไฟล์ Excel อัจฉริยะ (และกันข้อมูลซ้ำ)
+        // Excel Functionality
         // ==========================================
         let excelData = [];
 
@@ -559,7 +718,7 @@
                 
                 excelData = [];
                 let duplicateCount = 0;
-                const seenIdentifier = new Set(); // ตัวแปรเก็บประวัติเพื่อเช็คข้อมูลซ้ำ
+                const seenIdentifier = new Set();
 
                 json.forEach(row => {
                     const normalizedRow = {};
@@ -567,39 +726,29 @@
                         normalizedRow[key.toLowerCase().trim()] = row[key];
                     }
 
-                    // ดึง HN และ เลขบัตรประชาชน มาเพื่อตรวจเช็คความซ้ำซ้อน
                     let hn = (normalizedRow['hn'] || normalizedRow['บาร์โค้ด'] || normalizedRow['barcode'] || '').toString().replace(/\*/g, '').trim();
                     let idCard = (normalizedRow['เลขบัตรประชาชน'] || normalizedRow['เลขบัตร'] || normalizedRow['idcard'] || '').toString().trim();
                     
                     let isDuplicate = false;
 
-                    // ตรวจสอบว่า HN หรือ เลขบัตร นี้เคยถูกเพิ่มเข้าตารางไปหรือยัง
-                    if (hn && seenIdentifier.has(hn)) {
-                        isDuplicate = true;
-                    }
-                    if (idCard && seenIdentifier.has(idCard)) {
-                        isDuplicate = true;
-                    }
+                    if (hn && seenIdentifier.has(hn)) isDuplicate = true;
+                    if (idCard && seenIdentifier.has(idCard)) isDuplicate = true;
 
-                    // ถ้าไม่ซ้ำ ให้บันทึกข้อมูลเก็บไว้ และเพิ่มเข้า excelData
                     if (!isDuplicate) {
                         if (hn) seenIdentifier.add(hn);
                         if (idCard) seenIdentifier.add(idCard);
-                        normalizedRow.selected = true; // ตั้งค่าเริ่มต้นให้เลือกทั้งหมด
+                        normalizedRow.selected = true; 
                         excelData.push(normalizedRow);
                     } else {
-                        // ถ้าซ้ำ ให้นับจำนวนไว้
                         duplicateCount++;
                     }
                 });
 
-                // แจ้งเตือนผู้ใช้หากเจอข้อมูลซ้ำและถูกตัดออก
                 if (duplicateCount > 0) {
                     alert(`พบข้อมูลที่ HN หรือเลขบัตรประชาชนซ้ำกันจำนวน ${duplicateCount} รายการ\nระบบได้ทำการตัดรายการที่ซ้ำออกให้อัตโนมัติเรียบร้อยแล้วครับ`);
                 }
 
                 if (excelData.length > 0) {
-                    // รีเซ็ตปุ่ม Select All ให้เป็น Checked เสมอเมื่ออัปโหลดใหม่
                     const selectAllCb = document.getElementById('selectAll');
                     if (selectAllCb) selectAllCb.checked = true;
 
@@ -611,33 +760,23 @@
                 }
             };
             reader.readAsArrayBuffer(file);
-            
-            // ล้างค่า input file หลังจากอ่านเสร็จ เพื่อให้อัปโหลดไฟล์เดิมซ้ำได้ถ้าต้องการ
             e.target.value = '';
         });
 
-        // จัดการเลือกทั้งหมด
         function toggleSelectAll(checkbox) {
             const isChecked = checkbox.checked;
             excelData.forEach(row => row.selected = isChecked);
-            
-            // อัปเดต UI ของ Checkbox แต่ละแถว
             document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = isChecked);
             updatePrintButtonCount();
         }
 
-        // จัดการเลือกรายบุคคล
         function toggleRowSelection(index, isChecked) {
             excelData[index].selected = isChecked;
-            
-            // ตรวจสอบว่าเลือกครบทุกคนไหม เพื่ออัปเดต Checkbox ด้านบนสุด
             const allChecked = excelData.every(row => row.selected !== false);
             document.getElementById('selectAll').checked = allChecked;
-            
             updatePrintButtonCount();
         }
 
-        // อัปเดตข้อความบนปุ่มสั่งพิมพ์หลัก
         function updatePrintButtonCount() {
             const count = excelData.filter(row => row.selected !== false).length;
             const btnText = document.getElementById('btn-print-excel-text');
@@ -646,7 +785,6 @@
             }
         }
 
-        // นำข้อมูลมาวาดแสดงผลบนตาราง
         function renderExcelPreview(data) {
             const tbody = document.getElementById('excel-table-body');
             tbody.innerHTML = '';
@@ -738,7 +876,6 @@
                     const stickerDiv = document.createElement('div');
                     stickerDiv.className = 'print-sticker';
 
-                    // 1. สร้างบาร์โค้ด (ถ้าเลือก)
                     if (showBarcode) {
                         const svgId = `sticker-barcode-${stickerIndex}`;
                         const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
@@ -746,7 +883,6 @@
                         stickerDiv.appendChild(svgEl);
                     }
 
-                    // 2. สร้างชื่อ (ถ้าเลือก)
                     if (showName) {
                         const nameDiv = document.createElement('div');
                         nameDiv.className = 'product-name';
@@ -755,7 +891,6 @@
                         stickerDiv.appendChild(nameDiv);
                     }
 
-                    // 3. สร้างลำดับ (ถ้าเลือกและมีข้อมูล)
                     if (showSeq && item.seq) {
                         const seqDiv = document.createElement('div');
                         seqDiv.className = 'product-seq';
@@ -763,7 +898,6 @@
                         stickerDiv.appendChild(seqDiv);
                     }
 
-                    // 4. สร้างวันที่ (ถ้าเลือกและมีข้อมูล)
                     if (showDate && item.date) {
                         const dateDiv = document.createElement('div');
                         dateDiv.className = 'product-date';
@@ -773,7 +907,6 @@
 
                     printArea.appendChild(stickerDiv);
 
-                    // เรนเดอร์บาร์โค้ดลงใน SVG ถ้าเปิดให้แสดง
                     if (showBarcode) {
                         generateBarcode(`#sticker-barcode-${stickerIndex}`, item.barcode);
                     }
@@ -790,7 +923,6 @@
             const dateStr = getDisplayDate();
 
             excelData.forEach(row => {
-                // ข้ามรายการที่ไม่ได้ถูกติ๊กเลือกในตาราง
                 if (row.selected === false) return;
 
                 let seq = row['ลำดับที่'] || row['ลำดับ'] || row['seq'] || row['no'] || '';
@@ -798,7 +930,6 @@
                 let name = row['ชื่อ-นามสกุล'] || row['name'] || row['ชื่อสินค้า'] || row['ชื่อ'] || '';
                 let qty = parseInt(row['qty'] || row['quantity'] || row['จำนวน']) || 1;
 
-                // ถึงแม้ไม่มีบาร์โค้ด แต่ถ้าเปิดให้ปริ้นชื่ออย่างเดียว ก็ควรปริ้นได้
                 const showBarcode = document.getElementById('show-barcode').checked;
                 if (!showBarcode || (showBarcode && barcode)) {
                     itemsToPrint.push({ barcode, name, seq, date: dateStr, qty });
