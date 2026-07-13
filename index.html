@@ -287,7 +287,19 @@
 
             <!-- ส่วนแสดงตัวอย่างข้อมูลจาก Excel (กว้างเต็มจอ ขยายความสูงให้ดูง่าย) -->
             <div id="excel-preview-container" class="w-full hidden flex-1 flex-col">
-                <h3 class="text-sm font-semibold text-gray-700 mb-2">ข้อมูลที่ดึงได้จาก Excel:</h3>
+                <div class="flex flex-wrap justify-between items-center mb-2 gap-2">
+                    <h3 class="text-sm font-semibold text-gray-700">ข้อมูลที่ดึงได้จาก Excel:</h3>
+                    
+                    <!-- ส่วนเลือกแบบระบุช่วง -->
+                    <div class="flex items-center gap-2 text-sm bg-blue-50 p-1.5 rounded-lg border border-blue-200 shadow-sm">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3L8 21"/><path d="M16 3l-2 18"/></svg>
+                        <span class="text-blue-800 font-medium text-xs">เลือกคิวแถวที่:</span>
+                        <input type="number" id="range-start" min="1" placeholder="เริ่ม" class="w-14 px-1.5 py-1 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500 text-center">
+                        <span class="text-gray-500 text-xs">-</span>
+                        <input type="number" id="range-end" min="1" placeholder="ถึง" class="w-14 px-1.5 py-1 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500 text-center">
+                        <button onclick="selectRange()" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-xs font-bold transition shadow-sm">เลือก</button>
+                    </div>
+                </div>
                 <div class="bg-white border border-gray-200 rounded overflow-hidden w-full flex-1 max-h-[60vh] overflow-y-auto shadow-sm"> 
                     <table class="w-full text-sm text-left text-gray-500">
                         <thead class="text-xs text-gray-700 uppercase bg-gray-200 sticky top-0 shadow-sm z-10">
@@ -769,7 +781,11 @@
 
                     let hn = (normalizedRow['hn'] || normalizedRow['บาร์โค้ด'] || normalizedRow['barcode'] || '').toString().replace(/\*/g, '').trim();
                     let idCard = (normalizedRow['เลขบัตรประชาชน'] || normalizedRow['เลขบัตร'] || normalizedRow['idcard'] || '').toString().trim();
+                    let name = (normalizedRow['ชื่อ-นามสกุล'] || normalizedRow['name'] || normalizedRow['ชื่อสินค้า'] || normalizedRow['ชื่อ'] || '').toString().trim();
                     
+                    // ป้องกันแถวว่าง เพื่อให้ลำดับแถวตรงกับ Checkbox เสมอ
+                    if(!hn && !idCard && !name) return;
+
                     let isDuplicate = false;
 
                     if (hn && seenIdentifier.has(hn)) isDuplicate = true;
@@ -823,6 +839,45 @@
             updatePrintButtonCount();
         }
 
+        // ฟังก์ชันเลือกรายการแบบระบุช่วงแถว
+        function selectRange() {
+            let start = parseInt(document.getElementById('range-start').value);
+            let end = parseInt(document.getElementById('range-end').value);
+            
+            if (isNaN(start) || isNaN(end) || start > end || start < 1) {
+                alert("กรุณาระบุช่วงแถวให้ถูกต้อง (เช่น 1 ถึง 10)");
+                return;
+            }
+
+            if (end > excelData.length) {
+                end = excelData.length;
+                document.getElementById('range-end').value = end;
+            }
+
+            // เคลียร์การเลือกทั้งหมดก่อน
+            excelData.forEach(row => row.selected = false);
+            
+            // เลือกเฉพาะช่วงที่ระบุ (แปลงจาก 1-based เป็น 0-based index)
+            for (let i = start - 1; i < end; i++) {
+                if (i >= 0 && i < excelData.length) {
+                    excelData[i].selected = true;
+                }
+            }
+            
+            // อัปเดต UI ของ Checkbox ในตาราง
+            document.querySelectorAll('.row-checkbox').forEach((cb, index) => {
+                if(excelData[index]) {
+                    cb.checked = excelData[index].selected;
+                }
+            });
+            
+            // อัปเดต Checkbox ด้านบนสุด
+            const allChecked = excelData.length > 0 && excelData.every(row => row.selected !== false);
+            document.getElementById('selectAll').checked = allChecked;
+            
+            updatePrintButtonCount();
+        }
+
         // จัดการเมื่อผู้ใช้แก้จำนวนในตารางแบบสดๆ
         function updateRowQty(index, newQty) {
             let parsed = parseInt(newQty);
@@ -853,26 +908,24 @@
                 let name = row['ชื่อ-นามสกุล'] || row['name'] || row['ชื่อสินค้า'] || row['ชื่อ'] || '';
                 let qty = row.parsedQty || 1;
 
-                if(barcode || name) {
-                    tr.innerHTML = `
-                        <td class="px-4 py-3 text-center">
-                            <input type="checkbox" class="row-checkbox w-4 h-4 text-blue-600 rounded cursor-pointer" ${isChecked ? 'checked' : ''} onchange="toggleRowSelection(${index}, this.checked)">
-                        </td>
-                        <td class="px-4 py-3 text-center font-semibold text-gray-600">${seq}</td>
-                        <td class="px-4 py-3 font-mono text-gray-900">${barcode}</td>
-                        <td class="px-4 py-3 truncate font-medium text-gray-800">${name}</td>
-                        <td class="px-4 py-3 text-center">
-                            <input type="number" min="1" value="${qty}" class="w-16 border border-gray-300 rounded p-1 text-center focus:ring-2 focus:ring-blue-500 outline-none text-sm" onchange="updateRowQty(${index}, this.value)">
-                        </td>
-                        <td class="px-4 py-3 text-center">
-                            <div class="flex justify-center gap-3">
-                                <button onclick="fillManualForm(${index})" class="text-blue-600 hover:text-blue-800 hover:underline text-[13px] font-medium transition" title="ดึงข้อมูลลงฟอร์ม">ดึงข้อมูล</button>
-                                <button onclick="printSingleFromExcel(${index})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-[12px] font-bold shadow-sm transition" title="ปริ้นสติ๊กเกอร์คนนี้">พิมพ์</button>
-                            </div>
-                        </td>
-                    `;
-                    tbody.appendChild(tr);
-                }
+                tr.innerHTML = `
+                    <td class="px-4 py-3 text-center">
+                        <input type="checkbox" class="row-checkbox w-4 h-4 text-blue-600 rounded cursor-pointer" ${isChecked ? 'checked' : ''} onchange="toggleRowSelection(${index}, this.checked)">
+                    </td>
+                    <td class="px-4 py-3 text-center font-semibold text-gray-600">${seq}</td>
+                    <td class="px-4 py-3 font-mono text-gray-900">${barcode}</td>
+                    <td class="px-4 py-3 truncate font-medium text-gray-800">${name}</td>
+                    <td class="px-4 py-3 text-center">
+                        <input type="number" min="1" value="${qty}" class="w-16 border border-gray-300 rounded p-1 text-center focus:ring-2 focus:ring-blue-500 outline-none text-sm" onchange="updateRowQty(${index}, this.value)">
+                    </td>
+                    <td class="px-4 py-3 text-center">
+                        <div class="flex justify-center gap-3">
+                            <button onclick="fillManualForm(${index})" class="text-blue-600 hover:text-blue-800 hover:underline text-[13px] font-medium transition" title="ดึงข้อมูลลงฟอร์ม">ดึงข้อมูล</button>
+                            <button onclick="printSingleFromExcel(${index})" class="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1.5 rounded text-[12px] font-bold shadow-sm transition" title="ปริ้นสติ๊กเกอร์คนนี้">พิมพ์</button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
             });
 
             updatePrintButtonCount();
