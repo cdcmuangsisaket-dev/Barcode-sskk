@@ -175,7 +175,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label id="label-barcode-input" class="block text-sm font-medium text-gray-700 mb-1">รหัสบาร์โค้ด (HN)</label>
-                        <input type="text" id="input-barcode" value="" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
+                        <input type="text" id="input-barcode" value="001096048" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">ลำดับที่</label>
@@ -185,7 +185,7 @@
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล</label>
-                    <input type="text" id="input-name" value="" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
+                    <input type="text" id="input-name" value="ศรชัย ลุนศรี" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
                 </div>
 
                 <div>
@@ -457,7 +457,6 @@
                 .sticker-container { 
                     width: ${w}mm !important; 
                     height: ${h}mm !important; 
-                    padding: ${1 * baseScale}mm !important; /* ลดขอบกระดาษลง เพื่อให้บาร์โค้ดขยายได้เต็มใบมากขึ้น */
                     display: flex;
                     box-sizing: border-box;
                     background-color: white;
@@ -472,6 +471,7 @@
                     .sticker-container { 
                         flex-direction: column !important; 
                         justify-content: flex-start !important; 
+                        padding: ${1 * baseScale}mm !important; /* คืนขอบกระดาษให้สำหรับแนวนอน */
                     }
                     .barcode-wrapper {
                         width: 100%;
@@ -511,6 +511,7 @@
                         flex-direction: ${isLeft ? 'row' : 'row-reverse'} !important; 
                         align-items: center !important;
                         justify-content: space-between !important;
+                        padding: 0 !important; /* เอา Padding ของกรอบใหญ่ทิ้ง เพื่อให้รูปภาพบาร์โค้ดวิ่งชนขอบ 1mm ได้เป๊ะๆ */
                     }
                     .barcode-wrapper {
                         width: ${barcodeZoneW}mm;
@@ -523,9 +524,10 @@
                         position: absolute !important;
                         top: 50% !important;
                         left: 50% !important;
+                        /* จัดให้อยู่กึ่งกลางเป๊ะๆ โดยจะเหลือขอบบน 1mm และขอบล่าง 1mm พอดี */
                         transform: translate(-50%, -50%) rotate(${isLeft ? '-90deg' : '90deg'}) !important;
-                        width: auto !important; 
-                        max-width: ${innerH}mm !important; 
+                        width: ${h - 2}mm !important; /* บังคับความยาวเส้นให้หดลง 2mm จากความสูงกระดาษ */
+                        max-width: none !important; /* ปลดล็อกไม่ให้เบราว์เซอร์บีบด้านนี้ */
                         max-height: ${barcodeZoneW}mm !important; 
                         height: auto !important;
                         margin: 0 !important;
@@ -539,6 +541,7 @@
                         flex-direction: column;
                         justify-content: center;
                         align-items: center;
+                        padding: ${1 * baseScale}mm 0 !important; /* ใส่ขอบบนและล่างให้เฉพาะพื้นที่ข้อความ */
                     }
                 `;
             }
@@ -670,14 +673,15 @@
                 JsBarcode(selector, value, {
                     format: "CODE128", 
                     width: finalWidth, 
-                    // แนวนอนลดความสูงฐานลงมา (25) เพื่อให้สัดส่วนของรูปมัน "แบนและยาว"
-                    // เวลาโดน CSS width: 100% ดึงขยาย มันจะได้กางออกด้านข้างได้เต็มที่โดยไม่ติดเพดานความสูง
-                    height: isVertical ? Math.round(55 * scale) : Math.round(25 * scale),
+                    // แนวตั้งให้ความสูงแท่งยาวๆ ไว้ก่อนเพื่อเล็งเลเซอต์ง่าย
+                    height: isVertical ? Math.round(70 * scale) : Math.round(25 * scale),
                     displayValue: true, // กำหนดให้แสดงตัวเลขตลอด
-                    fontSize: Math.round(14 * scale),     
+                    fontSize: Math.round(12 * scale), // ลดขนาดฟอนต์ลงนิดนึงเพื่อไม่ให้ตัวหนังสือชิดเส้นเกินไปจนกวนเลเซอร์
                     fontOptions: "bold",
-                    // ตัด Margin แนวนอนทิ้ง เพื่อให้ขยาย 100% ชิดขอบซ้ายขวา
-                    margin: isVertical ? Math.round(10 * scale) : 0, 
+                    margin: 0, 
+                    // *** เพิ่มพื้นที่สีขาว (Quiet Zone) สำหรับหัว-ท้ายบาร์โค้ด ให้เลเซอร์ตั้งหลักได้ ***
+                    marginLeft: isVertical ? Math.round(10 * scale) : 0,  
+                    marginRight: isVertical ? Math.round(10 * scale) : 0, 
                     textMargin: Math.round(2 * scale)      
                 });
             } catch (e) {
