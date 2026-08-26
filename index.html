@@ -42,7 +42,6 @@
 </head>
 <body class="p-4 md:p-6 min-h-screen flex flex-col">
 
-    <!-- ปรับให้หน้าเว็บขยายเต็มจอด้วย w-full และใช้ grid แบบ 12 คอลัมน์ -->
     <div id="ui-area" class="w-full max-w-[1800px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-6 flex-1">
         
         <!-- ฝั่งซ้าย: ฟอร์มกรอกข้อมูล -->
@@ -61,68 +60,96 @@
                                 <span class="ml-2 text-sm text-gray-800 font-medium">สติ๊กเกอร์ม้วน (Thermal)</span>
                             </label>
                             <label class="inline-flex items-center cursor-pointer">
-                                <input type="radio" name="paperType" value="a4" class="form-radio text-blue-600 w-4 h-4" onchange="handlePaperTypeChange()">
-                                <span class="ml-2 text-sm text-gray-800 font-medium">สติ๊กเกอร์แผ่น A4</span>
+                                <input type="radio" name="paperType" value="sheet" class="form-radio text-blue-600 w-4 h-4" onchange="handlePaperTypeChange()">
+                                <span class="ml-2 text-sm text-gray-800 font-medium">สติ๊กเกอร์แบบแผ่น (A4, A9, A11...)</span>
                             </label>
                         </div>
                     </div>
 
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1">ความกว้างดวง (Width mm)</label>
-                        <input type="number" id="input-width" value="50" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                        <input type="number" id="input-width" value="50" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize(); setPresetCustom();">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1">ความสูงดวง (Height mm)</label>
-                        <input type="number" id="input-height" value="30" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                        <input type="number" id="input-height" value="30" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize(); setPresetCustom();">
                     </div>
 
-                    <!-- ส่วนตั้งค่า A4 (ซ่อนเมื่อเป็นแบบม้วน) -->
-                    <div id="a4-settings" class="col-span-2 grid grid-cols-2 gap-3 mt-1 hidden border-t border-blue-100 pt-3">
-                        <div class="col-span-2"><p class="text-xs text-blue-700 font-semibold">ตั้งค่าสำหรับกระดาษ A4:</p></div>
+                    <!-- ส่วนตั้งค่าแบบแผ่น (ซ่อนเมื่อเป็นแบบม้วน) -->
+                    <div id="sheet-settings" class="col-span-2 grid grid-cols-2 gap-3 mt-1 hidden border-t border-blue-100 pt-3">
+                        <div class="col-span-2">
+                            <label class="block text-xs font-bold text-blue-700 mb-1 flex items-center gap-1">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+                                เลือกเทมเพลตสติ๊กเกอร์ (Templates):
+                            </label>
+                            <select id="preset-selector" class="w-full border border-blue-300 rounded p-2 focus:ring-2 focus:ring-blue-500 outline-none text-sm bg-yellow-50 font-bold text-gray-800 shadow-sm" onchange="applyPreset()">
+                                <option value="custom">กำหนดขนาดเอง (Custom)</option>
+                                <optgroup label="--- ตราช้าง แผ่นเล็ก (165x224mm) ---">
+                                    <option value="a4">ตราช้าง A4 (50 x 16 มม.) - 30 ดวง</option>
+                                    <option value="a5">ตราช้าง A5 (38 x 19 มม.) - 40 ดวง</option>
+                                    <option value="a6">ตราช้าง A6 (38 x 25 มม.) - 32 ดวง</option>
+                                    <option value="a7">ตราช้าง A7 (50 x 25 มม.) - 24 ดวง</option>
+                                    <option value="a8">ตราช้าง A8 (79 x 34 มม.) - 12 ดวง</option>
+                                    <option value="a9">ตราช้าง A9 (50 x 19 มม.) - 30 ดวง</option>
+                                    <option value="a10">ตราช้าง A10 (50 x 25 มม.) - 24 ดวง</option>
+                                    <option value="a11">ตราช้าง A11 (55 x 28 มม.) - 21 ดวง</option>
+                                    <option value="a12">ตราช้าง A12 (79 x 34 มม.) - 12 ดวง</option>
+                                    <option value="a13">ตราช้าง A13 (38 x 50 มม.) - 16 ดวง</option>
+                                    <option value="a14">ตราช้าง A14 (50 x 50 มม.) - 12 ดวง</option>
+                                </optgroup>
+                                <optgroup label="--- สติ๊กเกอร์ขนาด A4 (210x297mm) ---">
+                                    <option value="f21">21 ดวง/แผ่น (70 x 42.4 มม.)</option>
+                                    <option value="f24">24 ดวง/แผ่น (70 x 37 มม.)</option>
+                                    <option value="f30">30 ดวง/แผ่น (70 x 29.7 มม.)</option>
+                                    <option value="f40">40 ดวง/แผ่น (52.5 x 29.7 มม.)</option>
+                                    <option value="f44">44 ดวง/แผ่น (48.5 x 25.4 มม.)</option>
+                                    <option value="f65">65 ดวง/แผ่น (38.1 x 21.2 มม.)</option>
+                                </optgroup>
+                            </select>
+                        </div>
                         
-                        <div class="col-span-2 flex gap-4 mb-1">
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="radio" name="orientation" value="portrait" class="form-radio text-blue-600 w-4 h-4" checked onchange="updatePreviewSize()">
-                                <span class="ml-2 text-xs text-gray-800 font-medium">แนวตั้ง (Portrait)</span>
-                            </label>
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="radio" name="orientation" value="landscape" class="form-radio text-blue-600 w-4 h-4" onchange="updatePreviewSize()">
-                                <span class="ml-2 text-xs text-gray-800 font-medium">แนวนอน (Landscape)</span>
-                            </label>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">ความกว้างกระดาษ (Sheet W)</label>
+                            <input type="number" id="input-sheet-w" value="210" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize(); setPresetCustom();">
+                        </div>
+                        <div>
+                            <label class="block text-xs font-medium text-gray-700 mb-1">ความสูงกระดาษ (Sheet H)</label>
+                            <input type="number" id="input-sheet-h" value="297" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize(); setPresetCustom();">
                         </div>
 
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">จำนวนดวงต่อแถว (คอลัมน์)</label>
-                            <input type="number" id="input-cols" value="3" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                            <input type="number" id="input-cols" value="3" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize(); setPresetCustom();">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">ระยะห่างดวง (Gap mm)</label>
-                            <input type="number" id="input-gap" value="2" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                            <input type="number" id="input-gap" value="2" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize(); setPresetCustom();">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">ขอบซ้ายกระดาษ (Left mm)</label>
-                            <input type="number" id="input-margin-left" value="10" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                            <input type="number" id="input-margin-left" value="10" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize(); setPresetCustom();">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">ขอบบนกระดาษ (Top mm)</label>
-                            <input type="number" id="input-margin-top" value="10" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                            <input type="number" id="input-margin-top" value="10" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize(); setPresetCustom();">
                         </div>
                     </div>
                 </div>
                 
-                <!-- ส่วนเลือกประเภทบาร์โค้ด -->
                 <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 space-y-3">
                     <div>
                         <label class="block text-sm font-bold text-gray-800 mb-1">1. ประเภทบาร์โค้ด</label>
-                        <div class="flex gap-4 p-2 bg-white rounded border border-gray-200">
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="radio" name="barcodeType" value="hn" class="form-radio text-blue-600 w-4 h-4" checked onchange="handleBarcodeTypeChange()">
-                                <span class="ml-2 text-sm text-gray-800 font-medium">HN (รหัสผู้ป่วย)</span>
-                            </label>
-                            <label class="inline-flex items-center cursor-pointer">
-                                <input type="radio" name="barcodeType" value="idcard" class="form-radio text-blue-600 w-4 h-4" onchange="handleBarcodeTypeChange()">
-                                <span class="ml-2 text-sm text-gray-800 font-medium">เลขบัตรประชาชน</span>
-                            </label>
+                        <div class="flex flex-col gap-2 p-2 bg-white rounded border border-gray-200">
+                            <div class="flex gap-4">
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="radio" name="barcodeType" value="hn" class="form-radio text-blue-600 w-4 h-4" checked onchange="handleBarcodeTypeChange()">
+                                    <span class="ml-2 text-sm text-gray-800 font-medium">HN (รหัสผู้ป่วย)</span>
+                                </label>
+                                <label class="inline-flex items-center cursor-pointer">
+                                    <input type="radio" name="barcodeType" value="idcard" class="form-radio text-blue-600 w-4 h-4" onchange="handleBarcodeTypeChange()">
+                                    <span class="ml-2 text-sm text-gray-800 font-medium">เลขบัตรประชาชน</span>
+                                </label>
+                            </div>
                         </div>
                     </div>
 
@@ -175,7 +202,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label id="label-barcode-input" class="block text-sm font-medium text-gray-700 mb-1">รหัสบาร์โค้ด (HN)</label>
-                        <input type="text" id="input-barcode" value="" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
+                        <input type="text" id="input-barcode" value="001096048" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">ลำดับที่</label>
@@ -185,12 +212,12 @@
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล</label>
-                    <input type="text" id="input-name" value="" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
+                    <input type="text" id="input-name" value="ศรชัย ลุนศรี" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">จำนวนดวงที่จะพิมพ์</label>
-                    <input type="number" id="input-qty" value="" min="1" max="100" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input type="number" id="input-qty" value="1" min="1" max="100" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
 
                 <div class="pt-4">
@@ -202,7 +229,6 @@
                 </div>
             </div>
 
-            <!-- ส่วนเพิ่ม: นำเข้าจาก Excel -->
             <div class="mt-8 pt-6 border-t border-gray-200">
                 <h3 class="text-lg font-bold mb-3 text-gray-800 flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-green-600"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="8" y1="13" x2="16" y2="13"></line><line x1="8" y1="17" x2="16" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -230,16 +256,13 @@
             </div>
         </div>
 
-        <!-- ฝั่งขวา: ตัวอย่างสติ๊กเกอร์ และ ตารางข้อมูล (ใช้พื้นที่ 8 ส่วนในจอใหญ่) -->
         <div class="bg-gray-100 p-6 rounded-xl shadow-inner border border-gray-200 flex flex-col items-center justify-start lg:col-span-8">
             <h3 class="text-lg font-semibold text-gray-700 mb-4 w-full text-center">ตัวอย่างฉลาก (Preview)</h3>
             
             <!-- กรอบจำลองสติ๊กเกอร์ -->
             <div class="preview-sticker sticker-container">
                 <div class="barcode-wrapper" id="preview-barcode-wrap">
-                    <!-- แยกประเภทบาร์โค้ด 2 แบบ: SVG สำหรับแนวนอน, IMG สำหรับแนวตั้ง -->
                     <svg id="preview-barcode-svg"></svg>
-                    <img id="preview-barcode-img" style="image-rendering: pixelated; mix-blend-mode: multiply; display: none;">
                 </div>
                 <div class="text-wrapper" id="preview-text-wrap">
                     <div id="preview-name" class="product-name">ศรชัย ลุนศรี</div>
@@ -294,6 +317,55 @@
     <div id="print-area"></div>
 
     <script>
+        // ฐานข้อมูลเทมเพลตมาตรฐาน
+        const templates = {
+            "custom": { w: 50, h: 30, cols: 3, gap: 2, ml: 10, mt: 10, sw: 210, sh: 297 },
+            // ตราช้าง แผ่นเล็ก 165x224
+            "a4": { w: 50, h: 16, cols: 3, gap: 0, ml: 7.5, mt: 16, sw: 165, sh: 224 },
+            "a5": { w: 38, h: 19, cols: 4, gap: 0, ml: 6.5, mt: 17, sw: 165, sh: 224 },
+            "a6": { w: 38, h: 25, cols: 4, gap: 0, ml: 6.5, mt: 12, sw: 165, sh: 224 },
+            "a7": { w: 50, h: 25, cols: 3, gap: 0, ml: 7.5, mt: 12, sw: 165, sh: 224 },
+            "a8": { w: 79, h: 34, cols: 2, gap: 0, ml: 3.5, mt: 10, sw: 165, sh: 224 },
+            "a9": { w: 50, h: 19, cols: 3, gap: 0, ml: 7.5, mt: 17, sw: 165, sh: 224 },
+            "a10": { w: 50, h: 25, cols: 3, gap: 0, ml: 7.5, mt: 12, sw: 165, sh: 224 },
+            "a11": { w: 55, h: 28, cols: 3, gap: 0, ml: 0, mt: 14, sw: 165, sh: 224 },
+            "a12": { w: 79, h: 34, cols: 2, gap: 0, ml: 3.5, mt: 10, sw: 165, sh: 224 },
+            "a13": { w: 38, h: 50, cols: 4, gap: 0, ml: 6.5, mt: 12, sw: 165, sh: 224 },
+            "a14": { w: 50, h: 50, cols: 3, gap: 0, ml: 7.5, mt: 12, sw: 165, sh: 224 },
+            // สติ๊กเกอร์ไดคัท A4 (210x297)
+            "f21": { w: 70, h: 42.4, cols: 3, gap: 0, ml: 0, mt: 0, sw: 210, sh: 297 },
+            "f24": { w: 70, h: 37, cols: 3, gap: 0, ml: 0, mt: 0.5, sw: 210, sh: 297 },
+            "f30": { w: 70, h: 29.7, cols: 3, gap: 0, ml: 0, mt: 0, sw: 210, sh: 297 },
+            "f40": { w: 52.5, h: 29.7, cols: 4, gap: 0, ml: 0, mt: 0, sw: 210, sh: 297 },
+            "f44": { w: 48.5, h: 25.4, cols: 4, gap: 0, ml: 8, mt: 9, sw: 210, sh: 297 }, 
+            "f65": { w: 38.1, h: 21.2, cols: 5, gap: 0, ml: 9.75, mt: 10.5, sw: 210, sh: 297 }
+        };
+
+        function applyPreset() {
+            const val = document.getElementById('preset-selector').value;
+            if (val === 'custom') return;
+            const t = templates[val];
+            if (t) {
+                document.getElementById('input-width').value = t.w;
+                document.getElementById('input-height').value = t.h;
+                document.getElementById('input-cols').value = t.cols;
+                document.getElementById('input-gap').value = t.gap;
+                document.getElementById('input-margin-left').value = t.ml;
+                document.getElementById('input-margin-top').value = t.mt;
+                document.getElementById('input-sheet-w').value = t.sw;
+                document.getElementById('input-sheet-h').value = t.sh;
+                updatePreviewSize();
+            }
+        }
+
+        function setPresetCustom() {
+            const ps = document.getElementById('preset-selector');
+            if (ps && ps.value !== 'custom') {
+                ps.value = 'custom';
+                saveSettings();
+            }
+        }
+
         // โหลดการตั้งค่าจาก LocalStorage
         function loadSettings() {
             const saved = localStorage.getItem('barcodePrinterSettings');
@@ -308,23 +380,25 @@
                         const ptRadio = document.querySelector(`input[name="paperType"][value="${settings.paperType}"]`);
                         if(ptRadio) ptRadio.checked = true;
                         
-                        const a4Settings = document.getElementById('a4-settings');
-                        if (settings.paperType === 'a4') {
-                            a4Settings.classList.remove('hidden');
+                        const sheetSettings = document.getElementById('sheet-settings');
+                        if (settings.paperType === 'sheet') {
+                            sheetSettings.classList.remove('hidden');
                         } else {
-                            a4Settings.classList.add('hidden');
+                            sheetSettings.classList.add('hidden');
                         }
                     }
 
+                    if (settings.preset) {
+                        const ps = document.getElementById('preset-selector');
+                        if(ps) ps.value = settings.preset;
+                    }
+
+                    if (settings.sheetW) document.getElementById('input-sheet-w').value = settings.sheetW;
+                    if (settings.sheetH) document.getElementById('input-sheet-h').value = settings.sheetH;
                     if (settings.cols) document.getElementById('input-cols').value = settings.cols;
                     if (settings.gap) document.getElementById('input-gap').value = settings.gap;
                     if (settings.marginLeft) document.getElementById('input-margin-left').value = settings.marginLeft;
                     if (settings.marginTop) document.getElementById('input-margin-top').value = settings.marginTop;
-
-                    if (settings.orientation) {
-                        const oriRadio = document.querySelector(`input[name="orientation"][value="${settings.orientation}"]`);
-                        if(oriRadio) oriRadio.checked = true;
-                    }
 
                     if (settings.barcodeType) {
                         const btRadio = document.querySelector(`input[name="barcodeType"][value="${settings.barcodeType}"]`);
@@ -360,14 +434,16 @@
         // บันทึกการตั้งค่าลง LocalStorage
         function saveSettings() {
             const settings = {
+                preset: document.getElementById('preset-selector') ? document.getElementById('preset-selector').value : 'custom',
                 width: document.getElementById('input-width').value,
                 height: document.getElementById('input-height').value,
                 paperType: document.querySelector('input[name="paperType"]:checked').value,
+                sheetW: document.getElementById('input-sheet-w') ? document.getElementById('input-sheet-w').value : 210,
+                sheetH: document.getElementById('input-sheet-h') ? document.getElementById('input-sheet-h').value : 297,
                 cols: document.getElementById('input-cols').value,
                 gap: document.getElementById('input-gap').value,
                 marginLeft: document.getElementById('input-margin-left').value,
                 marginTop: document.getElementById('input-margin-top').value,
-                orientation: document.querySelector('input[name="orientation"]:checked') ? document.querySelector('input[name="orientation"]:checked').value : 'portrait',
                 barcodeType: document.querySelector('input[name="barcodeType"]:checked').value,
 
                 stickerLayout: document.querySelector('input[name="stickerLayout"]:checked').value,
@@ -401,11 +477,11 @@
 
         function handlePaperTypeChange() {
             const type = document.querySelector('input[name="paperType"]:checked').value;
-            const a4Settings = document.getElementById('a4-settings');
-            if (type === 'a4') {
-                a4Settings.classList.remove('hidden');
+            const sheetSettings = document.getElementById('sheet-settings');
+            if (type === 'sheet') {
+                sheetSettings.classList.remove('hidden');
             } else {
-                a4Settings.classList.add('hidden');
+                sheetSettings.classList.add('hidden');
             }
             updatePreviewSize();
         }
@@ -457,6 +533,7 @@
                 .sticker-container { 
                     width: ${w}mm !important; 
                     height: ${h}mm !important; 
+                    padding: ${1 * baseScale}mm !important; /* ลดขอบกระดาษลง เพื่อให้บาร์โค้ดขยายได้เต็มใบมากขึ้น */
                     display: flex;
                     box-sizing: border-box;
                     background-color: white;
@@ -471,7 +548,6 @@
                     .sticker-container { 
                         flex-direction: column !important; 
                         justify-content: flex-start !important; 
-                        padding: ${1 * baseScale}mm !important; /* คืนขอบกระดาษให้สำหรับแนวนอน */
                     }
                     .barcode-wrapper {
                         width: 100%;
@@ -511,28 +587,32 @@
                         flex-direction: ${isLeft ? 'row' : 'row-reverse'} !important; 
                         align-items: center !important;
                         justify-content: space-between !important;
-                        padding: 0 !important; /* เอา Padding ของกรอบใหญ่ทิ้ง เพื่อให้รูปภาพบาร์โค้ดวิ่งชนขอบ 1mm ได้เป๊ะๆ */
+                        padding: 0 !important; /* ยกเลิก padding ของกรอบหลัก เพื่อให้บาร์โค้ดชนขอบอย่างอิสระ */
                     }
                     .barcode-wrapper {
                         width: ${barcodeZoneW}mm;
                         height: 100%;
                         display: ${hasBarcode ? 'block' : 'none'};
-                        position: relative; /* สำคัญมากเพื่อให้บาร์โค้ดหมุนอยู่ตรงกลางอย่างสมบูรณ์แบบ */
+                        position: relative; 
                     }
-                    /* สำหรับแนวตั้ง ใช้ IMG และควบคุมขนาดไม่ให้เพี้ยน */
-                    .barcode-wrapper img {
+                    
+                    /* แก้ปัญหาเส้นรวมกัน และกำหนดขอบบน-ล่างให้เท่ากันแบบสมบูรณ์แบบ! */
+                    .barcode-wrapper svg {
                         position: absolute !important;
                         top: 50% !important;
                         left: 50% !important;
-                        /* จัดให้อยู่กึ่งกลางเป๊ะๆ โดยจะเหลือขอบบน 1mm และขอบล่าง 1mm พอดี */
+                        /* จัดให้อยู่กึ่งกลางเป๊ะๆ เพื่อให้เหลือขอบบน 1mm และขอบล่าง 1mm เท่ากัน */
                         transform: translate(-50%, -50%) rotate(${isLeft ? '-90deg' : '90deg'}) !important;
-                        width: ${h - 2}mm !important; /* บังคับความยาวเส้นให้หดลง 2mm จากความสูงกระดาษ */
-                        max-width: none !important; /* ปลดล็อกไม่ให้เบราว์เซอร์บีบด้านนี้ */
+                        
+                        /* ความยาวบาร์โค้ดแนวนอน(ก่อนหมุน) ให้เท่ากับความสูงกระดาษลดลง 2.0mm (แบ่งเป็นบน 1mm ล่าง 1mm) */
+                        width: ${h - 2}mm !important; 
+                        max-width: none !important; 
+                        
+                        /* ความหนาของบาร์โค้ดให้ขยายอัตโนมัติ แต่ไม่เกินโซน */
+                        height: auto !important; 
                         max-height: ${barcodeZoneW}mm !important; 
-                        height: auto !important;
+                        
                         margin: 0 !important;
-                        image-rendering: pixelated !important;
-                        mix-blend-mode: multiply !important;
                     }
                     .text-wrapper {
                         width: ${textZoneW}mm;
@@ -541,7 +621,7 @@
                         flex-direction: column;
                         justify-content: center;
                         align-items: center;
-                        padding: ${1 * baseScale}mm 0 !important; /* ใส่ขอบบนและล่างให้เฉพาะพื้นที่ข้อความ */
+                        padding: ${1 * baseScale}mm 0 !important; /* คืนขอบบนและล่างให้พื้นที่ตัวอักษรแทน */
                     }
                 `;
             }
@@ -589,15 +669,16 @@
                 `;
             } else {
                 let cols = parseInt(document.getElementById('input-cols').value) || 3;
-                let gap = parseFloat(document.getElementById('input-gap').value) || 2;
+                let gap = parseFloat(document.getElementById('input-gap').value) || 0;
                 let marginLeft = parseFloat(document.getElementById('input-margin-left').value) || 0;
                 let marginTop = parseFloat(document.getElementById('input-margin-top').value) || 0;
-                let orientation = document.querySelector('input[name="orientation"]:checked') ? document.querySelector('input[name="orientation"]:checked').value : 'portrait';
+                let sheetW = parseFloat(document.getElementById('input-sheet-w').value) || 210;
+                let sheetH = parseFloat(document.getElementById('input-sheet-h').value) || 297;
 
-                if (printHint) printHint.innerText = `* กรุณาตั้งค่าหน้ากระดาษเป็น A4, ระบุ Scale เป็น 100% (Default) และ Margin เป็น None`;
+                if (printHint) printHint.innerText = `* เวลาพิมพ์โปรดตั้งค่าขนาดกระดาษให้ตรงกับแผ่น (${sheetW}x${sheetH} มม.) และเลือก Scale: 100%, Margin: None`;
                 dynamicCSS += `
                     @media print {
-                        @page { size: A4 ${orientation} !important; margin: 0; }
+                        @page { size: ${sheetW}mm ${sheetH}mm !important; margin: 0; }
                         #print-area { 
                             display: grid !important; 
                             grid-template-columns: repeat(${cols}, ${w}mm); 
@@ -660,30 +741,39 @@
             return raw.replace(/\*/g, '').trim();
         }
 
-        // ฟังก์ชันสร้างบาร์โค้ด แยกการตั้งค่าแนวนอน(SVG) และแนวตั้ง(IMG) อย่างเด็ดขาด
+        // ฟังก์ชันสร้างบาร์โค้ด
         function generateBarcode(selector, value) {
             let scale = window.currentFinalScale || 1;
             let layout = document.querySelector('input[name="stickerLayout"]:checked').value;
             let isVertical = layout !== 'horizontal';
 
-            let horizontalScaleWidth = 1.8 * scale;
-            let finalWidth = isVertical ? 1 : horizontalScaleWidth;
+            // เพิ่มความกว้างเส้นฐานเป็น 2 เพื่อป้องกันเส้นเบียดเละเวลากดพิมพ์ (เบราว์เซอร์สเกลลง)
+            let finalWidth = isVertical ? Math.max(2, Math.round(1.8 * scale)) : (1.8 * scale);
 
             try {
                 JsBarcode(selector, value, {
                     format: "CODE128", 
                     width: finalWidth, 
-                    // แนวตั้งให้ความสูงแท่งยาวๆ ไว้ก่อนเพื่อเล็งเลเซอต์ง่าย
-                    height: isVertical ? Math.round(70 * scale) : Math.round(25 * scale),
+                    // แนวตั้งให้ความสูงแท่งยาวๆ ไว้ก่อนเพื่อเล็งเลเซอร์ง่าย
+                    height: isVertical ? Math.round(55 * scale) : Math.round(25 * scale),
                     displayValue: true, // กำหนดให้แสดงตัวเลขตลอด
-                    fontSize: Math.round(12 * scale), // ลดขนาดฟอนต์ลงนิดนึงเพื่อไม่ให้ตัวหนังสือชิดเส้นเกินไปจนกวนเลเซอร์
+                    fontSize: Math.round(14 * scale),     
                     fontOptions: "bold",
                     margin: 0, 
-                    // *** เพิ่มพื้นที่สีขาว (Quiet Zone) สำหรับหัว-ท้ายบาร์โค้ด ให้เลเซอร์ตั้งหลักได้ ***
-                    marginLeft: isVertical ? Math.round(10 * scale) : 0,  
-                    marginRight: isVertical ? Math.round(10 * scale) : 0, 
                     textMargin: Math.round(2 * scale)      
                 });
+
+                // สำคัญมาก: ใส่ viewBox ให้ SVG เพื่อให้ยืดหดได้สมส่วน 100% ป้องกันภาพเละหรือยืดเบี้ยวตอนพิมพ์
+                const svgEl = document.querySelector(selector);
+                if (svgEl && svgEl.tagName.toLowerCase() === 'svg') {
+                    const w = svgEl.getAttribute('width');
+                    const h = svgEl.getAttribute('height');
+                    if (w && h) {
+                        svgEl.setAttribute('viewBox', `0 0 ${w.replace('px','')} ${h.replace('px','')}`);
+                        svgEl.style.width = '100%';
+                        svgEl.style.height = 'auto';
+                    }
+                }
             } catch (e) {
                 console.error("Barcode generation error:", e);
             }
@@ -733,7 +823,6 @@
             const textWrap = document.getElementById('preview-text-wrap');
             
             const barcodeSvg = document.getElementById('preview-barcode-svg');
-            const barcodeImg = document.getElementById('preview-barcode-img');
 
             nameEl.innerText = name;
             adjustNameFontSize(nameEl, name, false);
@@ -750,16 +839,9 @@
             dateEl.style.display = (showDate && dateStr) ? 'block' : 'none';
 
             if (showBarcode) {
-                // สลับชนิดของแท็กการวาดบาร์โค้ด ตาม Layout
-                if (isHorizontal) {
-                    barcodeSvg.style.display = 'block';
-                    barcodeImg.style.display = 'none';
-                    generateBarcode("#preview-barcode-svg", barcode);
-                } else {
-                    barcodeSvg.style.display = 'none';
-                    barcodeImg.style.display = 'block';
-                    generateBarcode("#preview-barcode-img", barcode);
-                }
+                // ใช้ SVG เพียงตัวเดียวในการวาด เพื่อให้ viewBox ล็อกสัดส่วนภาพได้เนียนที่สุด
+                barcodeSvg.style.display = 'block';
+                generateBarcode("#preview-barcode-svg", barcode);
             }
         }
 
@@ -1055,18 +1137,9 @@
                     if (!showName && !showSeq && !showDate) textWrap.style.display = 'none';
 
                     if (showBarcode) {
-                        // สลับชนิดของแท็กที่จะสร้างตาม Layout
-                        if (isHorizontal) {
-                            const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-                            svgEl.id = `sticker-barcode-${stickerIndex}`;
-                            barcodeWrap.appendChild(svgEl);
-                        } else {
-                            const imgEl = document.createElement("img");
-                            imgEl.id = `sticker-barcode-${stickerIndex}`;
-                            imgEl.style.imageRendering = "pixelated";
-                            imgEl.style.mixBlendMode = "multiply";
-                            barcodeWrap.appendChild(imgEl);
-                        }
+                        const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                        svgEl.id = `sticker-barcode-${stickerIndex}`;
+                        barcodeWrap.appendChild(svgEl);
                     }
 
                     if (showName) {
