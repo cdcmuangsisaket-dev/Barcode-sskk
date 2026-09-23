@@ -57,11 +57,11 @@
                         <label class="block text-sm font-bold text-blue-800 mb-2">รูปแบบกระดาษที่จะพิมพ์</label>
                         <div class="flex gap-4 p-2 bg-white rounded border border-gray-200">
                             <label class="inline-flex items-center cursor-pointer">
-                                <input type="radio" name="paperType" value="roll" class="form-radio text-blue-600 w-4 h-4" checked onchange="handlePaperTypeChange()">
+                                <input type="radio" name="paperType" value="roll" class="form-radio text-blue-600 w-4 h-4" onchange="handlePaperTypeChange()">
                                 <span class="ml-2 text-sm text-gray-800 font-medium">สติ๊กเกอร์ม้วน (Thermal)</span>
                             </label>
                             <label class="inline-flex items-center cursor-pointer">
-                                <input type="radio" name="paperType" value="a4" class="form-radio text-blue-600 w-4 h-4" onchange="handlePaperTypeChange()">
+                                <input type="radio" name="paperType" value="a4" class="form-radio text-blue-600 w-4 h-4" checked onchange="handlePaperTypeChange()">
                                 <span class="ml-2 text-sm text-gray-800 font-medium">สติ๊กเกอร์แผ่น A4</span>
                             </label>
                         </div>
@@ -69,15 +69,15 @@
 
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1">ความกว้างดวง (Width mm)</label>
-                        <input type="number" id="input-width" value="50" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                        <input type="number" id="input-width" value="38" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
                     </div>
                     <div>
                         <label class="block text-xs font-medium text-gray-700 mb-1">ความสูงดวง (Height mm)</label>
-                        <input type="number" id="input-height" value="30" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                        <input type="number" id="input-height" value="13" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
                     </div>
 
                     <!-- ส่วนตั้งค่า A4 (ซ่อนเมื่อเป็นแบบม้วน) -->
-                    <div id="a4-settings" class="col-span-2 grid grid-cols-2 gap-3 mt-1 hidden border-t border-blue-100 pt-3">
+                    <div id="a4-settings" class="col-span-2 grid grid-cols-2 gap-3 mt-1 border-t border-blue-100 pt-3">
                         <div class="col-span-2"><p class="text-xs text-blue-700 font-semibold">ตั้งค่าสำหรับกระดาษ A4:</p></div>
                         
                         <div class="col-span-2 flex gap-4 mb-1">
@@ -93,7 +93,7 @@
 
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">จำนวนดวงต่อแถว (คอลัมน์)</label>
-                            <input type="number" id="input-cols" value="3" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                            <input type="number" id="input-cols" value="4" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">ระยะห่างดวง (Gap mm)</label>
@@ -101,11 +101,11 @@
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">ขอบซ้ายกระดาษ (Left mm)</label>
-                            <input type="number" id="input-margin-left" value="10" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                            <input type="number" id="input-margin-left" value="3.5" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-700 mb-1">ขอบบนกระดาษ (Top mm)</label>
-                            <input type="number" id="input-margin-top" value="10" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
+                            <input type="number" id="input-margin-top" value="8" class="w-full border border-gray-300 rounded p-1.5 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreviewSize()">
                         </div>
                     </div>
                 </div>
@@ -130,7 +130,7 @@
                         <label class="block text-sm font-bold text-gray-800 mb-1">2. องค์ประกอบที่จะพิมพ์</label>
                         <div class="grid grid-cols-2 gap-2 p-2 bg-white rounded border border-gray-200">
                             <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="show-barcode" class="form-checkbox text-blue-600 w-4 h-4" checked onchange="updatePreviewSize()">
+                                <input type="checkbox" id="show-barcode" class="form-checkbox text-blue-600 w-4 h-4" onchange="updatePreviewSize()">
                                 <span class="ml-2 text-sm text-gray-800">บาร์โค้ด</span>
                             </label>
                             <label class="inline-flex items-center cursor-pointer">
@@ -142,7 +142,7 @@
                                 <span class="ml-2 text-sm text-gray-800">ลำดับที่</span>
                             </label>
                             <label class="inline-flex items-center cursor-pointer">
-                                <input type="checkbox" id="show-date" class="form-checkbox text-blue-600 w-4 h-4" checked onchange="updatePreviewSize()">
+                                <input type="checkbox" id="show-date" class="form-checkbox text-blue-600 w-4 h-4" onchange="updatePreviewSize()">
                                 <span class="ml-2 text-sm text-gray-800">วันที่พิมพ์</span>
                             </label>
                         </div>
@@ -175,7 +175,7 @@
                 <div class="grid grid-cols-2 gap-4">
                     <div>
                         <label id="label-barcode-input" class="block text-sm font-medium text-gray-700 mb-1">รหัสบาร์โค้ด (HN)</label>
-                        <input type="text" id="input-barcode" value="" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
+                        <input type="text" id="input-barcode" value="" placeholder="ปล่อยว่างได้ถ้าไม่มี" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
                     </div>
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">ลำดับที่</label>
@@ -185,12 +185,12 @@
                 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">ชื่อ-นามสกุล</label>
-                    <input type="text" id="input-name" value="" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
+                    <input type="text" id="input-name" value="ศรชัย ลุนศรี" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none" oninput="updatePreview()">
                 </div>
 
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">จำนวนดวงที่จะพิมพ์</label>
-                    <input type="number" id="input-qty" value="" min="1" max="100" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none">
+                    <input type="number" id="input-qty" value="1" min="1" max="100" class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-blue-500 outline-none">
                 </div>
 
                 <div class="pt-4">
@@ -237,7 +237,6 @@
             <!-- กรอบจำลองสติ๊กเกอร์ -->
             <div class="preview-sticker sticker-container">
                 <div class="barcode-wrapper" id="preview-barcode-wrap">
-                    <!-- แยกประเภทบาร์โค้ด 2 แบบ: SVG สำหรับแนวนอน, IMG สำหรับแนวตั้ง -->
                     <svg id="preview-barcode-svg"></svg>
                     <img id="preview-barcode-img" style="image-rendering: pixelated; mix-blend-mode: multiply; display: none;">
                 </div>
@@ -249,7 +248,7 @@
             </div>
 
             <div id="display-size" class="mt-4 mb-6 text-sm text-gray-500 bg-white px-4 py-2 rounded shadow-sm border border-gray-200">
-                ขนาดจำลอง: กว้าง 50mm x สูง 30mm
+                ขนาดจำลอง: กว้าง 38mm x สูง 13mm
             </div>
 
             <!-- ส่วนแสดงตัวอย่างข้อมูลจาก Excel -->
@@ -426,8 +425,11 @@
             const showDate = document.getElementById('show-date').checked;
             const stickerLayout = document.querySelector('input[name="stickerLayout"]:checked').value;
 
+            // แก้บั๊ก: ให้การวาดกล่องอิงจากตัวตั้งค่า (Checkbox) ไม่ใช่อิงจากช่องกรอกฝั่งซ้าย
+            let hasBarcode = showBarcode;
+
             let activeCount = 0;
-            if (showBarcode) activeCount++;
+            if (hasBarcode) activeCount++;
             if (showName) activeCount++;
             if (showSeq) activeCount++;
             if (showDate) activeCount++;
@@ -449,7 +451,6 @@
 
             let innerW = w - (3 * baseScale);
             let innerH = h - (3 * baseScale);
-            let hasBarcode = showBarcode;
             let hasText = (showName || showSeq || showDate);
 
             // เริ่มต้นเขียน CSS (ใช้ mm เป็นหลักเพื่อความแม่นยำสูงตอนพิมพ์จริง)
@@ -461,7 +462,7 @@
                     box-sizing: border-box;
                     background-color: white;
                     overflow: hidden;
-                    position: relative; /* สำคัญมากเพื่อให้ของที่อยู่ข้างในลอยตัวจัดกึ่งกลางได้ */
+                    position: relative;
                 }
             `;
 
@@ -471,7 +472,7 @@
                     .sticker-container { 
                         flex-direction: column !important; 
                         justify-content: flex-start !important; 
-                        padding: ${1 * baseScale}mm !important; /* คืนขอบกระดาษให้สำหรับแนวนอน */
+                        padding: ${1 * baseScale}mm !important;
                     }
                     .barcode-wrapper {
                         width: 100%;
@@ -481,27 +482,23 @@
                         align-items: flex-start;
                         margin-bottom: ${hasBarcode && hasText ? Math.max(1, 1 * finalScale) + 'mm' : '0'};
                     }
-                    /* สำหรับแนวนอน ใช้ SVG และยืดกว้าง 100% ของพื้นที่ */
                     .barcode-wrapper svg {
                         transform: none !important;
                         width: 100% !important; 
                         height: auto !important;
-                        /* กำหนดเพดานความสูงไว้ เพื่อบังคับให้มันยืดกว้างแทน */
                         max-height: ${hasText ? (innerH * 0.40 * zoomFactor) : innerH}mm !important;
                         margin: 0 !important;
                     }
                     .text-wrapper {
                         width: 100%;
-                        flex: 1; /* ดันข้อความให้ใช้พื้นที่ที่เหลือ */
+                        flex: 1;
                         display: ${hasText ? 'flex' : 'none'};
                         flex-direction: column;
                         align-items: center;
-                        /* ใช้ space-evenly เพื่อให้บรรทัดต่างๆ กางออกแบ่งช่องไฟสวยๆ อัตโนมัติตามพื้นที่กระดาษ */
                         justify-content: space-evenly !important; 
                     }
                 `;
             } else {
-                // แนวตั้ง: จำลองให้เหมือนป้ายหลอดเลือด 
                 let isLeft = stickerLayout === 'vertical-left';
                 let barcodeZoneW = hasText ? (innerW * 0.40) : innerW; 
                 let textZoneW = hasBarcode ? (innerW * 0.60) : innerW; 
@@ -511,23 +508,21 @@
                         flex-direction: ${isLeft ? 'row' : 'row-reverse'} !important; 
                         align-items: center !important;
                         justify-content: space-between !important;
-                        padding: 0 !important; /* เอา Padding ของกรอบใหญ่ทิ้ง เพื่อให้รูปภาพบาร์โค้ดวิ่งชนขอบ 1mm ได้เป๊ะๆ */
+                        padding: 0 !important;
                     }
                     .barcode-wrapper {
                         width: ${barcodeZoneW}mm;
                         height: 100%;
                         display: ${hasBarcode ? 'block' : 'none'};
-                        position: relative; /* สำคัญมากเพื่อให้บาร์โค้ดหมุนอยู่ตรงกลางอย่างสมบูรณ์แบบ */
+                        position: relative;
                     }
-                    /* สำหรับแนวตั้ง ใช้ IMG และควบคุมขนาดไม่ให้เพี้ยน */
                     .barcode-wrapper img {
                         position: absolute !important;
                         top: 50% !important;
                         left: 50% !important;
-                        /* จัดให้อยู่กึ่งกลางเป๊ะๆ โดยจะเหลือขอบบน 1mm และขอบล่าง 1mm พอดี */
                         transform: translate(-50%, -50%) rotate(${isLeft ? '-90deg' : '90deg'}) !important;
-                        width: ${h - 2}mm !important; /* บังคับความยาวเส้นให้หดลง 2mm จากความสูงกระดาษ */
-                        max-width: none !important; /* ปลดล็อกไม่ให้เบราว์เซอร์บีบด้านนี้ */
+                        width: ${h - 2}mm !important;
+                        max-width: none !important;
                         max-height: ${barcodeZoneW}mm !important; 
                         height: auto !important;
                         margin: 0 !important;
@@ -541,35 +536,36 @@
                         flex-direction: column;
                         justify-content: center;
                         align-items: center;
-                        padding: ${1 * baseScale}mm 0 !important; /* ใส่ขอบบนและล่างให้เฉพาะพื้นที่ข้อความ */
+                        padding: ${1 * baseScale}mm 0 !important;
                     }
                 `;
             }
 
-            // สไตล์ของข้อความข้างใน (ตัวหนังสือ) แก้ไขเรื่องสระและวรรณยุกต์ทับกัน
+            // สไตล์ของข้อความข้างใน (ตัวหนังสือ) ปลดล็อกให้ขยายเต็มที่และตัดลงล่างได้
             dynamicCSS += `
                 .sticker-container .product-name { 
-                    padding-top: 0 !important; 
-                    padding-bottom: ${0.5 * finalScale}mm !important; 
+                    padding: 0 !important; 
                     font-weight: 900; margin: 0; text-align: center; 
-                    white-space: normal; /* อนุญาตให้ขึ้นบรรทัดใหม่ */
-                    line-height: 1.25; /* ปรับลดลงนิดนึงเวลาขึ้น 2 บรรทัดจะได้ไม่กินพื้นที่มาก */
+                    white-space: normal; 
+                    line-height: 1.15; 
                     width: 100%; 
                     overflow: hidden; 
-                    display: -webkit-box; 
-                    -webkit-line-clamp: 2; /* จำกัดไม่ให้เกิน 2 บรรทัด ถ้ายาวกว่านี้จะตัดเป็น ... */
-                    -webkit-box-orient: vertical;
-                    word-break: break-word; /* ตัดคำเวลาพื้นที่ไม่พอ */
+                    flex: 1;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    word-wrap: break-word;
+                    word-break: break-word;
                 }
                 .sticker-container .product-seq { 
                     font-size: ${11 * finalScale}px !important; 
                     padding-top: 0 !important; 
                     padding-bottom: ${0.5 * finalScale}mm !important; 
-                    font-weight: bold; margin: 0; line-height: 1.4;
+                    font-weight: bold; margin: 0; line-height: 1.2;
                 }
                 .sticker-container .product-date { 
                     font-size: ${9 * finalScale}px !important; 
-                    margin: 0; line-height: 1.4;
+                    margin: 0; line-height: 1.2;
                 }
                 @media print {
                     .sticker-container .product-seq { font-size: ${8 * finalScale}pt !important; }
@@ -588,7 +584,7 @@
                     }
                 `;
             } else {
-                let cols = parseInt(document.getElementById('input-cols').value) || 3;
+                let cols = parseInt(document.getElementById('input-cols').value) || 4;
                 let gap = parseFloat(document.getElementById('input-gap').value) || 2;
                 let marginLeft = parseFloat(document.getElementById('input-margin-left').value) || 0;
                 let marginTop = parseFloat(document.getElementById('input-margin-top').value) || 0;
@@ -600,16 +596,22 @@
                         @page { size: A4 ${orientation} !important; margin: 0; }
                         #print-area { 
                             display: grid !important; 
-                            grid-template-columns: repeat(${cols}, ${w}mm); 
-                            gap: ${gap}mm;
-                            justify-content: start;
-                            align-content: start;
+                            grid-template-columns: repeat(${cols}, ${w}mm) !important; 
+                            grid-auto-rows: ${h}mm !important;
+                            gap: ${gap}mm !important;
+                            justify-content: start !important;
+                            align-content: start !important;
                             padding-top: ${marginTop}mm !important;
                             padding-left: ${marginLeft}mm !important;
                         }
                         .print-sticker { 
                             page-break-inside: avoid; 
                             page-break-after: auto;
+                            min-width: ${w}mm !important;
+                            max-width: ${w}mm !important;
+                            min-height: ${h}mm !important;
+                            max-height: ${h}mm !important;
+                            box-sizing: border-box !important;
                         }
                     }
                 `;
@@ -643,7 +645,6 @@
                 renderExcelPreview(excelData);
             }
             updatePreview();
-            
             saveSettings();
         }
 
@@ -660,7 +661,7 @@
             return raw.replace(/\*/g, '').trim();
         }
 
-        // ฟังก์ชันสร้างบาร์โค้ด แยกการตั้งค่าแนวนอน(SVG) และแนวตั้ง(IMG) อย่างเด็ดขาด
+        // ฟังก์ชันสร้างบาร์โค้ด
         function generateBarcode(selector, value) {
             let scale = window.currentFinalScale || 1;
             let layout = document.querySelector('input[name="stickerLayout"]:checked').value;
@@ -673,17 +674,27 @@
                 JsBarcode(selector, value, {
                     format: "CODE128", 
                     width: finalWidth, 
-                    // แนวตั้งให้ความสูงแท่งยาวๆ ไว้ก่อนเพื่อเล็งเลเซอต์ง่าย
                     height: isVertical ? Math.round(70 * scale) : Math.round(25 * scale),
-                    displayValue: true, // กำหนดให้แสดงตัวเลขตลอด
-                    fontSize: Math.round(12 * scale), // ลดขนาดฟอนต์ลงนิดนึงเพื่อไม่ให้ตัวหนังสือชิดเส้นเกินไปจนกวนเลเซอร์
+                    displayValue: true, 
+                    fontSize: Math.round(12 * scale), 
                     fontOptions: "bold",
                     margin: 0, 
-                    // *** เพิ่มพื้นที่สีขาว (Quiet Zone) สำหรับหัว-ท้ายบาร์โค้ด ให้เลเซอร์ตั้งหลักได้ ***
                     marginLeft: isVertical ? Math.round(10 * scale) : 0,  
                     marginRight: isVertical ? Math.round(10 * scale) : 0, 
                     textMargin: Math.round(2 * scale)      
                 });
+
+                // อัปเดตให้รูป SVG จัด Scale ตอบสนองกับพื้นที่กล่องได้ 100%
+                const svgEl = document.querySelector(selector);
+                if (svgEl && svgEl.tagName.toLowerCase() === 'svg') {
+                    const w = svgEl.getAttribute('width');
+                    const h = svgEl.getAttribute('height');
+                    if (w && h) {
+                        svgEl.setAttribute('viewBox', `0 0 ${w.replace('px','')} ${h.replace('px','')}`);
+                        svgEl.style.width = '100%';
+                        svgEl.style.height = 'auto';
+                    }
+                }
             } catch (e) {
                 console.error("Barcode generation error:", e);
             }
@@ -696,7 +707,6 @@
             let layout = document.querySelector('input[name="stickerLayout"]:checked').value;
             let hasBarcode = document.getElementById('show-barcode').checked;
             
-            // ขยายเกณฑ์ให้กว้างขึ้น เพราะตอนนี้เราขึ้น 2 บรรทัดได้แล้ว ฟอนต์จะได้ไม่เล็กเกินไป
             let threshold1 = (layout === 'horizontal' || !hasBarcode) ? 26 : 18;
             let threshold2 = (layout === 'horizontal' || !hasBarcode) ? 18 : 12;
 
@@ -713,12 +723,12 @@
 
         // ฟังก์ชันอัปเดตหน้า Preview
         function updatePreview() {
-            const barcode = document.getElementById('input-barcode').value || " ";
-            const name = document.getElementById('input-name').value || " ";
-            const seq = document.getElementById('input-seq').value || " ";
+            const barcode = document.getElementById('input-barcode').value.trim();
+            const name = document.getElementById('input-name').value.trim();
+            const seq = document.getElementById('input-seq').value.trim();
             const dateStr = getDisplayDate();
 
-            const showBarcode = document.getElementById('show-barcode').checked;
+            const showBarcodeOption = document.getElementById('show-barcode').checked;
             const showName = document.getElementById('show-name').checked;
             const showSeq = document.getElementById('show-seq').checked;
             const showDate = document.getElementById('show-date').checked;
@@ -735,22 +745,30 @@
             const barcodeSvg = document.getElementById('preview-barcode-svg');
             const barcodeImg = document.getElementById('preview-barcode-img');
 
-            nameEl.innerText = name;
+            nameEl.innerText = name || " ";
             adjustNameFontSize(nameEl, name, false);
 
             seqEl.innerText = seq ? `ลำดับ ${seq}` : '';
             dateEl.innerText = dateStr;
             
-            // เปิด/ปิด การแสดงผลพื้นที่หลัก
-            barcodeWrap.style.display = showBarcode ? 'flex' : 'none';
+            // เช็คว่าจริงๆ แล้วดวงนี้มีบาร์โค้ดให้แสดงไหม (ถ้าไม่มี HN จะซ่อนอัตโนมัติ)
+            const actuallyShowBarcode = showBarcodeOption && barcode !== '';
+
+            barcodeWrap.style.display = actuallyShowBarcode ? (isHorizontal ? 'flex' : 'block') : 'none';
             textWrap.style.display = (showName || showSeq || showDate) ? 'flex' : 'none';
             
-            nameEl.style.display = showName ? 'block' : 'none';
+            // หากไม่มีบาร์โค้ด ให้ฝั่งตัวหนังสือขยายกว้างเต็ม 100%
+            if (!actuallyShowBarcode && layout !== 'horizontal') {
+                textWrap.style.width = '100%';
+            } else if (layout !== 'horizontal') {
+                textWrap.style.width = ''; // คืนค่าความกว้างให้ตรงตาม CSS
+            }
+
+            nameEl.style.display = showName ? 'flex' : 'none';
             seqEl.style.display = (showSeq && seq) ? 'block' : 'none';
             dateEl.style.display = (showDate && dateStr) ? 'block' : 'none';
 
-            if (showBarcode) {
-                // สลับชนิดของแท็กการวาดบาร์โค้ด ตาม Layout
+            if (actuallyShowBarcode) {
                 if (isHorizontal) {
                     barcodeSvg.style.display = 'block';
                     barcodeImg.style.display = 'none';
@@ -763,18 +781,16 @@
             }
         }
 
-        // สั่งพิมพ์เดี่ยว
+        // สั่งพิมพ์เดี่ยว (ปลดล็อก: ไม่มีบาร์โค้ดก็สั่งพิมพ์ได้ ขอแค่มีชื่อ)
         function printStickers() {
-            const barcode = document.getElementById('input-barcode').value;
-            const name = document.getElementById('input-name').value;
-            const seq = document.getElementById('input-seq').value;
+            const barcode = document.getElementById('input-barcode').value.trim();
+            const name = document.getElementById('input-name').value.trim();
+            const seq = document.getElementById('input-seq').value.trim();
             const dateStr = getDisplayDate();
             const qty = parseInt(document.getElementById('input-qty').value) || 1;
-            
-            const showBarcode = document.getElementById('show-barcode').checked;
 
-            if (showBarcode && !barcode) {
-                alert("กรุณากรอกรหัสบาร์โค้ด");
+            if (!barcode && !name) {
+                alert("กรุณากรอกข้อมูลอย่างน้อย 1 อย่าง (ชื่อ-นามสกุล หรือ รหัสบาร์โค้ด)");
                 return;
             }
 
@@ -797,7 +813,8 @@
             const templateData = [
                 ["ลำดับที่", "ชื่อ-นามสกุล", "HN", "เลขบัตรประชาชน", "จำนวน"],
                 [1, "สมชาย ใจดี", "001096048", "1330300181448", 1],
-                [2, "สมหญิง รักเรียน", "001257017", "1103702111111", 3]
+                [2, "สมหญิง รักเรียน", "001257017", "1103702111111", 3],
+                [3, "ไม่มี HN นามสกุลยาว", "", "", 1]
             ];
 
             const worksheet = XLSX.utils.aoa_to_sheet(templateData);
@@ -1016,10 +1033,8 @@
             let qty = row.parsedQty || 1;
             const dateStr = getDisplayDate();
 
-            const showBarcode = document.getElementById('show-barcode').checked;
-
-            if (showBarcode && !barcode) {
-                alert("รายการนี้ไม่มีข้อมูลรหัสบาร์โค้ด");
+            if (!barcode && !name) {
+                alert("รายการนี้ไม่มีข้อมูลรหัสบาร์โค้ดและชื่อ");
                 return;
             }
 
@@ -1031,7 +1046,7 @@
             const printArea = document.getElementById('print-area');
             printArea.innerHTML = ''; 
 
-            const showBarcode = document.getElementById('show-barcode').checked;
+            const showBarcodeOption = document.getElementById('show-barcode').checked;
             const showName = document.getElementById('show-name').checked;
             const showSeq = document.getElementById('show-seq').checked;
             const showDate = document.getElementById('show-date').checked;
@@ -1046,16 +1061,29 @@
                     const stickerDiv = document.createElement('div');
                     stickerDiv.className = 'print-sticker sticker-container';
 
+                    // ตรวจสอบว่าดวงนี้มีบาร์โค้ดให้พิมพ์จริงหรือไม่
+                    const hasItemBarcode = showBarcodeOption && item.barcode && item.barcode.trim() !== '';
+
                     const barcodeWrap = document.createElement('div');
                     barcodeWrap.className = 'barcode-wrapper';
-                    if (!showBarcode) barcodeWrap.style.display = 'none';
+                    if (!hasItemBarcode) {
+                        barcodeWrap.style.display = 'none';
+                    } else {
+                        barcodeWrap.style.display = isHorizontal ? 'flex' : 'block';
+                    }
                     
                     const textWrap = document.createElement('div');
                     textWrap.className = 'text-wrapper';
                     if (!showName && !showSeq && !showDate) textWrap.style.display = 'none';
+                    
+                    // ถ้าดวงนี้ไม่มีบาร์โค้ด ให้ขยายกล่องข้อความเต็ม 100%
+                    if (!hasItemBarcode && layout !== 'horizontal') {
+                        textWrap.style.width = '100%';
+                    } else if (layout !== 'horizontal') {
+                        textWrap.style.width = ''; // คืนค่าตาม CSS เดิม
+                    }
 
-                    if (showBarcode) {
-                        // สลับชนิดของแท็กที่จะสร้างตาม Layout
+                    if (hasItemBarcode) {
                         if (isHorizontal) {
                             const svgEl = document.createElementNS("http://www.w3.org/2000/svg", "svg");
                             svgEl.id = `sticker-barcode-${stickerIndex}`;
@@ -1095,7 +1123,7 @@
                     stickerDiv.appendChild(textWrap);
                     printArea.appendChild(stickerDiv);
 
-                    if (showBarcode) {
+                    if (hasItemBarcode) {
                         generateBarcode(`#sticker-barcode-${stickerIndex}`, item.barcode);
                     }
                     
@@ -1104,6 +1132,7 @@
             });
         }
 
+        // สั่งพิมพ์รายการจาก Excel (ปลดล็อก: แค่มีชื่อ หรือ มี HN ก็พิมพ์ได้)
         function printExcelStickers() {
             if (excelData.length === 0) return;
 
@@ -1118,14 +1147,14 @@
                 let name = row['ชื่อ-นามสกุล'] || row['name'] || row['ชื่อสินค้า'] || row['ชื่อ'] || '';
                 let qty = row.parsedQty || 1;
 
-                const showBarcode = document.getElementById('show-barcode').checked;
-                if (!showBarcode || (showBarcode && barcode)) {
+                // เพียงแค่มีชื่อหรือมีบาร์โค้ดอย่างใดอย่างหนึ่ง ก็ส่งไปพิมพ์ได้
+                if (barcode || name) {
                     itemsToPrint.push({ barcode, name, seq, date: dateStr, qty });
                 }
             });
 
             if (itemsToPrint.length === 0) {
-                alert("กรุณาเลือกรายการที่ต้องการพิมพ์อย่างน้อย 1 รายการ หรือตรวจสอบว่ารายการมีข้อมูลรหัสบาร์โค้ดครบถ้วน");
+                alert("กรุณาเลือกรายการที่ต้องการพิมพ์อย่างน้อย 1 รายการ");
                 return;
             }
 
