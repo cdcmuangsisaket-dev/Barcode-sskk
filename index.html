@@ -256,13 +256,23 @@
                 <div class="flex flex-wrap justify-between items-center mb-2 gap-2">
                     <h3 class="text-sm font-semibold text-gray-700">ข้อมูลที่ดึงได้จาก Excel:</h3>
                     
-                    <div class="flex items-center gap-2 text-sm bg-blue-50 p-1.5 rounded-lg border border-blue-200 shadow-sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3L8 21"/><path d="M16 3l-2 18"/></svg>
-                        <span class="text-blue-800 font-medium text-xs">เลือกคิวแถวที่:</span>
-                        <input type="number" id="range-start" min="1" placeholder="เริ่ม" class="w-14 px-1.5 py-1 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500 text-center">
-                        <span class="text-gray-500 text-xs">-</span>
-                        <input type="number" id="range-end" min="1" placeholder="ถึง" class="w-14 px-1.5 py-1 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500 text-center">
-                        <button onclick="selectRange()" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-xs font-bold transition shadow-sm">เลือก</button>
+                    <div class="flex flex-wrap gap-2">
+                        <!-- ส่วนควบคุมที่เพิ่มใหม่: ตั้งจำนวนพิมพ์ทั้งหมด -->
+                        <div class="flex items-center gap-2 text-sm bg-green-50 p-1.5 rounded-lg border border-green-200 shadow-sm">
+                            <span class="text-green-800 font-medium text-xs">จำนวนพิมพ์ทุกดวง:</span>
+                            <input type="number" id="bulk-qty-input" min="1" value="1" class="w-12 px-1.5 py-1 text-xs border border-gray-300 rounded outline-none text-center focus:ring-1 focus:ring-green-500">
+                            <button onclick="applyBulkQty()" class="bg-green-600 hover:bg-green-700 text-white px-2.5 py-1 rounded text-xs font-bold transition shadow-sm">นำไปใช้</button>
+                        </div>
+
+                        <!-- เลือกคิวแถวที่ -->
+                        <div class="flex items-center gap-2 text-sm bg-blue-50 p-1.5 rounded-lg border border-blue-200 shadow-sm">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-blue-600"><path d="M4 9h16"/><path d="M4 15h16"/><path d="M10 3L8 21"/><path d="M16 3l-2 18"/></svg>
+                            <span class="text-blue-800 font-medium text-xs">เลือกคิวแถวที่:</span>
+                            <input type="number" id="range-start" min="1" placeholder="เริ่ม" class="w-14 px-1.5 py-1 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500 text-center">
+                            <span class="text-gray-500 text-xs">-</span>
+                            <input type="number" id="range-end" min="1" placeholder="ถึง" class="w-14 px-1.5 py-1 text-xs border border-gray-300 rounded outline-none focus:ring-1 focus:ring-blue-500 text-center">
+                            <button onclick="selectRange()" class="bg-blue-600 hover:bg-blue-700 text-white px-2.5 py-1 rounded text-xs font-bold transition shadow-sm">เลือก</button>
+                        </div>
                     </div>
                 </div>
                 <div class="bg-white border border-gray-200 rounded overflow-hidden w-full flex-1 max-h-[60vh] overflow-y-auto shadow-sm"> 
@@ -713,7 +723,7 @@
             if (isPrintMode) {
                 if (len > threshold1) element.style.fontSize = `${7.5 * scale}pt`;     
                 else if (len > threshold2) element.style.fontSize = `${9.5 * scale}pt`; 
-                else element.style.fontSize = `${11.5 * scale}pt`;               
+                else element.style.fontSize = `${11.5 * scale}pt`;                
             } else {
                 if (len > threshold1) element.style.fontSize = `${10 * scale}px`;
                 else if (len > threshold2) element.style.fontSize = `${12.5 * scale}px`;
@@ -951,6 +961,20 @@
             document.getElementById('selectAll').checked = allChecked;
             
             updatePrintButtonCount();
+        }
+
+        // ฟังก์ชันใหม่: นำไปใช้ ตั้งจำนวนพิมพ์ทั้งหมด
+        function applyBulkQty() {
+            let bulkQty = parseInt(document.getElementById('bulk-qty-input').value);
+            if (isNaN(bulkQty) || bulkQty < 1) bulkQty = 1;
+            
+            excelData.forEach(row => {
+                row.parsedQty = bulkQty;
+            });
+            
+            if (excelData.length > 0) {
+                renderExcelPreview(excelData);
+            }
         }
 
         function updateRowQty(index, newQty) {
